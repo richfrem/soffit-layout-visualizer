@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "skills": {
+    "algorithmic-art": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "brand-guidelines": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "canvas-design": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "claude-api": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "doc-coauthoring": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "docx": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "frontend-design": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "internal-comms": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "mcp-builder": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "pdf": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "pptx": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "skill-creator": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "slack-gif-creator": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "theme-factory": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "web-artifacts-builder": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "webapp-testing": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    },
+    "xlsx": {
+      "source": "anthropics_skills",
+      "sourceType": "local",
+      "computedHash": "",
+      "installedAt": "2026-04-23T05:47:56.690461Z",
+      "updatedAt": "2026-04-23T05:47:56.690461Z"
+    }
+  }
+}

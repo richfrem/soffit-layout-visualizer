@@ -1,0 +1,111 @@
+{
+    "_notes": [
+        "All XY coords are canvas units (1.3 units = 1 inch, 15.6 units = 1 foot).",
+        "Dimensions are AUTO-COMPUTED from the x1/y1 → x2/y2 distance and converted to ft' in\".",
+        "Wall allowances baked in: exterior 2x4 stud wall ≈ 4.5\" (3.5\" stud + 1\" stucco each face).",
+        "Set 'visible': false to hide any individual dimension arrow.",
+        "Set 'enabled': false at top level to remove ALL dimension arrows in one shot.",
+        "Each entry: x1/y1 = arrow start, x2/y2 = arrow end (both in canvas units).",
+        "label_offset: how many canvas-units to shift the label perpendicular to the arrow line.",
+        "  Positive pushes UP (for top/horizontal arrows) or RIGHT (for side/vertical arrows)."
+    ],
+    "enabled": true,
+    "dimensions": [
+        {
+            "id": "north_wall_total",
+            "description": "North exterior wall: Kitchen + Dining + Living Rm + Bedroom + walls + stucco",
+            "visible": true,
+            "x1": 0,
+            "y1": 300,
+            "x2": 714,
+            "y2": 300,
+            "label": "45'9\"",
+            "label_offset": -20,
+            "color": "#0055cc"
+        },
+        {
+            "id": "south_garage_face",
+            "description": "South front – Garage face (20'2\")",
+            "visible": true,
+            "x1": 0,
+            "y1": 1110,
+            "x2": 340,
+            "y2": 1110,
+            "label": "20'2\"",
+            "label_offset": 20,
+            "color": "#0055cc"
+        },
+        {
+            "id": "south_master_face",
+            "description": "South front – Master Bedroom face (~14'8\")",
+            "visible": true,
+            "x1": 470,
+            "y1": 1005,
+            "x2": 714,
+            "y2": 1005,
+            "label": "14'8\"",
+            "label_offset": 20,
+            "color": "#0055cc"
+        },
+        {
+            "id": "west_wall_total",
+            "description": "West (Garage/Family/Kitchen) exterior wall length",
+            "visible": true,
+            "x1": -40,
+            "y1": 300,
+            "x2": -40,
+            "y2": 1050,
+            "label": "51'3\"",
+            "label_offset": -22,
+            "color": "#0055cc"
+        },
+        {
+            "id": "east_wall_total",
+            "description": "East (Master/Baths/Bedrooms) exterior wall length",
+            "visible": true,
+            "x1": 740,
+            "y1": 300,
+            "x2": 740,
+            "y2": 1050,
+            "label": "48'1\"",
+            "label_offset": 22,
+            "color": "#0055cc"
+        },
+        {
+            "id": "entryway_back_wall",
+            "description": "Entryway Back Wall",
+            "visible": true,
+            "x1": 350,
+            "y1": 945,
+            "x2": 450,
+            "y2": 945,
+            "label": "8'4\"",
+            "label_offset": -15,
+            "color": "#0077B6"
+        },
+        {
+            "id": "entryway_left_wall",
+            "description": "Entryway Left Wall (Garage side)",
+            "visible": true,
+            "x1": 355,
+            "y1": 925,
+            "x2": 355,
+            "y2": 1050,
+            "label": "11'2\"",
+            "label_offset": 15,
+            "color": "#0077B6"
+        },
+        {
+            "id": "entryway_right_wall",
+            "description": "Entryway Right Wall (Master side)",
+            "visible": true,
+            "x1": 440,
+            "y1": 925,
+            "x2": 440,
+            "y2": 1000,
+            "label": "8'3\"",
+            "label_offset": -15,
+            "color": "#0077B6"
+        }
+    ]
+}

@@ -1,0 +1,401 @@
+Received: from MN0PR19MB6113.namprd19.prod.outlook.com (2603:10b6:208:380::9)
+ by SN7PR19MB8002.namprd19.prod.outlook.com with HTTPS; Mon, 12 Jan 2026
+ 00:09:59 +0000
+ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
+ b=WiQloKu4Ys1pbw3+if01MoMTgygmmMAv40sDkA6Nnw+g/I8vcWASObxk/0FFch/J1HKV09ggJQFCw0IOH9DLq4DefLGPa640xEgDxYcpD8GVD+B/Q0WCa3duni9TvzdlojgQjXb5Kljy3DbBPvtG58bBCT9+LNL5xHUBxd3xGTDzsMYd1JLe5tD5c/05eKRYe+AP2qTcpX7q2DcaL/W1oZko7EFCDFWppf8ont6CkmhHOwKU2yvPKxaRQ+r2sAGuTLeWtEWydvmb0unTkhil8ribO6BwtVz7352B94aAvIyf9Vsn5WmFcqnyyvtWpW44q3zSlP27ytFJXHbnYcbU7g==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=PKlU5i9yJQ8RE+bbltbbgshFMfzV6xOOIr89YU+tjwE=;
+ b=N1fQ//BVekyHADriqFyd3T77xL71iaVV1WRHgOynHeGDMg6tuWpfB77CUH5os7OoTABn+R7Xy5zqVCAc15TZIPWA+hbcQUIlxZGofG1Ie04hZsAXZYmMhnr2VZ92+ReATsF4hZHJVGpWBjgGWJNC3mY4yLrPnVr14fB15Ec23Zr/6Is/WnUqbox+iCEGF+ldzgfSbXPxUJjkukBd7WlSR7V9CAXtLYoGUoa/Dv/vhbaocxpxi4q/yUoV25txFyrWWdV8uNBsOJ5mMnFQSpIEy1v1vySpxXfPgBaUdLTQe0N+YrAjubGIDubfGEguKMj20NN0auj4EMabHJOdEKPRhg==
+ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
+ 52.103.12.16) smtp.rcpttodomain=hotmail.com smtp.mailfrom=hotmail.com;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=hotmail.com;
+ dkim=pass (signature was verified) header.d=hotmail.com; arc=pass (0 oda=0
+ ltdi=1)
+Received: from BYAPR08CA0051.namprd08.prod.outlook.com (2603:10b6:a03:117::28)
+ by MN0PR19MB6113.namprd19.prod.outlook.com (2603:10b6:208:380::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9499.7; Mon, 12 Jan
+ 2026 00:09:58 +0000
+Received: from SJ1PEPF00001CEB.namprd03.prod.outlook.com
+ (2603:10b6:a03:117:cafe::a) by BYAPR08CA0051.outlook.office365.com
+ (2603:10b6:a03:117::28) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9499.7 via Frontend Transport; Mon,
+ 12 Jan 2026 00:09:59 +0000
+Authentication-Results: spf=pass (sender IP is 52.103.12.16)
+ smtp.mailfrom=hotmail.com; dkim=pass (signature was verified)
+ header.d=hotmail.com;dmarc=pass action=none
+ header.from=hotmail.com;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of hotmail.com designates
+ 52.103.12.16 as permitted sender) receiver=protection.outlook.com;
+ client-ip=52.103.12.16; helo=BN1PR04CU002.outbound.protection.outlook.com;
+ pr=C
+Received: from BN1PR04CU002.outbound.protection.outlook.com (52.103.12.16) by
+ SJ1PEPF00001CEB.mail.protection.outlook.com (10.167.242.27) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9520.1
+ via Frontend Transport; Mon, 12 Jan 2026 00:09:57 +0000
+X-IncomingTopHeaderMarker: OriginalChecksum:9C27ED5CF8E43FA799DADE6223B35FCEABD66385C95953050C817D1EAE9D4E9B;UpperCasedChecksum:00B388F932B1F89720DDAE0CE10B4DBCC9815A9F34ECCC343534C5AB0463C29C;SizeAsReceived:7944;Count:40
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=dTPM8VBdjvxdIec51h/5mcFgszjjkmcEBxuTgQKbskJecwqAmrZB+HI5e5O6otPX83rO4NfUjkjbFpBIUnr0fjuovQocHh9T4WPcdquG7M0pwvFF69aI06w0PmbYIHpNEke9jHy4zUWoacmGOraAvXFvzByofrGsj8o/M2g+ato/bUqly+J80Qntm0yEF8IoekUb/zQeYwB/aq/lwhf5MKmV8BVEmMpmMetkQoBA6TNAjtkDKK6xmPwXJr3S4RpjNKaahz+VrmmPg+f1UGnX+jE+OBW3xCd5mK5bEyI2N19qpiVMd9/dv+06m7tlnWOOsl3vVTut80ihU8XahlHUww==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=PKlU5i9yJQ8RE+bbltbbgshFMfzV6xOOIr89YU+tjwE=;
+ b=RaRzDB5HtaKVPRA7AQrwCe1HumMMuLkDsTZySFtnwKxR6aZrE8PwYSOCeFoOcyCQl9d8yssJyNAefDvaCAQIGkiC9W2dLpHyqVcDJmErXtiWPaaVv23D0DefV/tZK21r/jrTgVhSqYAbSnfqJ36ZOJK0/YWzE8PsDiBJ3GE5H29rlRuMDrXVDs6W59AaEgubBtD+3Cme9t/hdDtGdLFbwkp0tkHx34GllUogCjRTVHsrgLgKvQ5YNAIunMdj0yL2on+I99jJLGpH8m8EbJ+I603NS9O2Xx9gAFX1olwCL0eJ5zs20WbDg0sv9QF9z2NRug9X7lI4RNXhvEwjLWBuIw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hotmail.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=PKlU5i9yJQ8RE+bbltbbgshFMfzV6xOOIr89YU+tjwE=;
+ b=MtG1DDEzhy3fDfbgySFhRwnbQ1hKOOUkk8DoNkuSoyHomSqWeyydNGZYUt0/XPD6+6dwN1Em/TVnK5he3s6qbnxpFDs+lp6TIMBJxKnWewAKWapkTj0RYV0e93vabrBn8EfSUluQZZ6QTiKksFmME9cRD5reSH0zBsKgibo93xN32kKdy3aLWKHbZzm42cuh06AArZyzk7MjS+Nn3JdeaNHdv3OdE6oELRTTw7aN54d5EK9tQZvSre48xjeGGMIk7hJ2Ig/MUC4eAHUcSdmzczkYR9PfN+74gkfY5jm1H7n15k/Rd3did0o4T4bQx98Hhwnz9MQ67rHmDrXXtIGcqw==
+Received: from SN7PR19MB8002.namprd19.prod.outlook.com (2603:10b6:806:2e1::9)
+ by SJ0PR19MB5611.namprd19.prod.outlook.com (2603:10b6:a03:42b::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9499.7; Mon, 12 Jan
+ 2026 00:09:56 +0000
+Received: from SN7PR19MB8002.namprd19.prod.outlook.com
+ ([fe80::3f55:98e:9c51:22a1]) by SN7PR19MB8002.namprd19.prod.outlook.com
+ ([fe80::3f55:98e:9c51:22a1%4]) with mapi id 15.20.9499.005; Mon, 12 Jan 2026
+ 00:09:56 +0000
+From: R f <rfremmer@hotmail.com>
+To: R f <rfremmer@hotmail.com>
+Subject: Re: WARRANTY CLAIM: Ventilation Defect & Remediation Plan - 1517 San
+ Juan Ave (DRAFT3)
+Thread-Topic: WARRANTY CLAIM: Ventilation Defect & Remediation Plan - 1517 San
+ Juan Ave (DRAFT3)
+Thread-Index: AQHcg1fI/0C/UZb+ikae8dyQpkRpPw==
+Date: Mon, 12 Jan 2026 00:09:56 +0000
+Message-ID: <5849B298-2178-44F4-B741-575AC06BBBB6@hotmail.com>
+References: <666aed3ee23ff_21637f2c15026b1@ip-172-16-2-58.ec2.internal.mail>
+ <CFFCD4FD-6B95-4DD4-A05A-36FFB7D1ACA2@hotmail.com>
+ <8AF7F383-99B6-4E57-878F-1581BA5DFF7C@hotmail.com>
+In-Reply-To: <8AF7F383-99B6-4E57-878F-1581BA5DFF7C@hotmail.com>
+Accept-Language: en-CA, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-mailer: Apple Mail (2.3864.200.81.1.6)
+x-ms-exchange-messagesentrepresentingtype: 1
+x-ms-traffictypediagnostic: SN7PR19MB8002:EE_|SJ0PR19MB5611:EE_|SJ1PEPF00001CEB:EE_|MN0PR19MB6113:EE_|SN7PR19MB8002:EE_
+X-MS-Office365-Filtering-Correlation-Id: c4c6e5c5-0fad-4f1a-f37f-08de516eec0f
+X-Microsoft-Antispam-Untrusted: BCL:0;ARA:14566002|8022599003|461199028|15080799012|31061999003|8060799015|8062599012|19110799012|41001999006|440099028|3412199025|102099032|56899033|1710799026;
+X-Microsoft-Antispam-Message-Info-Original: =?us-ascii?Q?hPx2eaQjdXpjQrRhayg8O+c+YeW7NplJyyVvJ4Co7g6q7mhjucbwGJc3QSAf?=
+ =?us-ascii?Q?e92wdhHOK8v92xAJeE+6RksTVgYMYf6G4iv5ghQ3Lpt7RsTnGQ+WiIINKp3F?=
+ =?us-ascii?Q?BIDfM7zvFCDciCX1JI+FY7EfTgkfoYhR32itcSi7VE5ALGNCTv5X6IlEJU0+?=
+ =?us-ascii?Q?yLqb4Oe6pmWX+NOLgkYjY6DZuShD88pnlv+QSo7tDpqtK5DZ9Czfyg+NBToV?=
+ =?us-ascii?Q?pXgDIYnYWz+jqrYJvKvfzyJVhGgvUnaYmz0M5KoigXg9Ingjsqve6BF5iKT0?=
+ =?us-ascii?Q?ADn7FOm75IqRJ/LWDNcFXgy+GiBCB2RYyfh7t6s+/OTRVHaWHeJRRNe0GRG6?=
+ =?us-ascii?Q?PVpEzicl1lVgIh0a0rw2DhSESyX7Wx8lYytDP/wV9WKY7Vy4THsvGXyt6jMe?=
+ =?us-ascii?Q?wmm7lpekcdYSMgd7nweJb9RsbN+0soz4vn63ujbJ6Yn1sJFQ+j9XT6qUP+4e?=
+ =?us-ascii?Q?boItZcmaPpKX+Lw2N7k3+Bs8GtHXXM5ez+IHQYXfH3AB8xx7ls7rcpvBgxRM?=
+ =?us-ascii?Q?peZy/o8+KC7NZAjNP9iU2masmmqxG+X0U288fLoZ5xKI5Ba3N9DWBBt10fQQ?=
+ =?us-ascii?Q?vnSufMvoDi4YQi80fKtVGQGQfsHm/pJNNXyurx0Q+JVn1/GB0jTm8JA79iKX?=
+ =?us-ascii?Q?A9I67jR2E3Dfz0K+ZrwmRK5hOZecAmLCJdn7C8wp2HN4flJE6MHTPTfZnsKA?=
+ =?us-ascii?Q?Vg6YmyNUIpMA8x64b4ARh0Msru2FOw8iQPTE8H5OhpTzFM6LWS8CtYVfXENw?=
+ =?us-ascii?Q?sz8bXP3oeD6gSb5O1tgmlDYM35LynWfpkIUVBNZLf2/WOccsth/ubMw3xmz4?=
+ =?us-ascii?Q?lzD0650qmgLprvYyPUTVXqXLdxLaiDRlOgjFVUppGeVlwLYXTQJ/nMvo+YPN?=
+ =?us-ascii?Q?9XNcCRTdIqGRrxHVx+A6xWA65RwbW7wZbxbP+KLj6v4sZgeyTG+FBXjQeDQC?=
+ =?us-ascii?Q?sA/9qrRdv+zN88AS7gj0lfMlZUgba3Y4nS8axRz7k6RHebcrhDVOmZEjg/pG?=
+ =?us-ascii?Q?Cf/qE5+yCRxu7iDzu3CCq+Fo0bQ9RsA7duWeeUmfn3NyPaq2t4hEZUWl7Mcf?=
+ =?us-ascii?Q?Ip3M66ZqmnJooA3hUOD+a/0cTnFMxRPakQwdnmNTZDWpQDXrdk2gfrmTTb+P?=
+ =?us-ascii?Q?PYFL8AXheVrX/I53rbb4PpAldWTvj3RZyvqGIdrcOdlqfBNtb5lZ3BGeNrtn?=
+ =?us-ascii?Q?APv+7bsynBhZZs++WXYRrbn4IJcCULMGciSe6g=3D=3D?=
+X-MS-Exchange-AntiSpam-MessageData-Original-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-Original-0: =?us-ascii?Q?2HOi11Xxd8jBRMnQ2r5c/O+gT3OakRAKN/YGm2cUrXr7OJMt4vC7BEd/sG9L?=
+ =?us-ascii?Q?Lj60WWW5QG2CnQsRknhHyrDF3vOZttt4oM+Ce6qouRCV4mHBpMj8n+VvqNUa?=
+ =?us-ascii?Q?2Bi1Ewwjq1rDBebDSrzCtTeHuMOtVsS+gIVo6DfkpRqxT1sG5qSAIFxQsigw?=
+ =?us-ascii?Q?ogwU0OybF193VFL7WInY7Vzhmw6q/IPjryqR0CiuNJ2LpwmV8gePRqysjjAh?=
+ =?us-ascii?Q?jet1QbR9d0OoAbf2sUdVw+XpJDHjhLMVnUbQuvAhC4ibFV9NS9bEbcIvdoIy?=
+ =?us-ascii?Q?EFNRGseOJoGiHKJrsk0a25cM7fEtYoyAt4y3tBSNYprFKpLOYQqJonKkCGdJ?=
+ =?us-ascii?Q?rFEB38f/Egx6hn1NwB9m+BSCe4/NkOorpha+7liL4UiieSQ9IwTQ7iKPEOOz?=
+ =?us-ascii?Q?7kblst0dmAfrjbbYp5gf1xAaRwltxldug8dp0J1SSMHZ/dnmYciMo0FqGT2Y?=
+ =?us-ascii?Q?+t6ZXZ4KPAADy+BNj58EJ22ynwwuHkqxw/igj5OGp2qcEz+nd5A5CXmgYtBq?=
+ =?us-ascii?Q?oAreJ3Zv5EyPvjwKVg5o15PEPzCePSOJcHxCZ/sNv7DnDl4bwopYgRz/TswJ?=
+ =?us-ascii?Q?ECUwEnmm3Pn4vbOUrVnaVRMYVbN7ybpRB1GGf/zxBiFOa2/BPij9ehXS1ME4?=
+ =?us-ascii?Q?pj+BQ1LHzMA6iWlUZmqDblr/XUp59AxdXDAJzCX8YSN1OOqsWUxyVCy7MQmg?=
+ =?us-ascii?Q?JXWOR9De99y1Ao9u9EjQTTzG9UP6qDakkCqduisIbLJcfDStFXmHp2X3FbCg?=
+ =?us-ascii?Q?q+Mznh/KyR5q0wv4+DFBC4IhziSFNY6+bLXbjWlf9xJFVSOXkY3KIF8BOu3L?=
+ =?us-ascii?Q?abmiRuC+F0XNC8QDuWo7GR0i30UQkzCo/JDeQg5VJTPI8f/DxTgNXRKspbXY?=
+ =?us-ascii?Q?9ZyjtQhlIl/RRbAq3pOuRsB/0xo/Nzqs6q3AMhXPJKKHTSVwUxFI7v6Xgd3G?=
+ =?us-ascii?Q?Z5kyxwMY/iH4cVnfDpYSqpZiOq9MriBHOhDpIkJUTvJGI28m0aw/t9rMBxTa?=
+ =?us-ascii?Q?jxXesJRv0b1XDhL3EmOk2x0KeCuzOAOsQme/Y1LAh4ByAFTW2KNPIjU9Z2aK?=
+ =?us-ascii?Q?UexHx96zx3S45u97vGPfvRZlpolS39IKClRYgcYcCdFf1por50l3y7EVM9oz?=
+ =?us-ascii?Q?YdNM5y9T+0dEbqZZ6tLcdJmilBAhRBCogR33MCpZtm+7Eo2hgUMGwQbgSEdY?=
+ =?us-ascii?Q?HIRHQvJ6eqPSTMgoliLlYvfgK1NWLaEB0vzohprJx4lMFcb8rTzUp97JKjre?=
+ =?us-ascii?Q?izl20wD3UDYogMSaVEvLRbEzt9ivGinwWmyUyUiaWeyvLvkPs6vDhykx2QGi?=
+ =?us-ascii?Q?L+AVE9YGvkwrRKGRXCxqM6reHBksIO/BMGGZzaBF8SbR5HWdnRZAcs0qsT/Q?=
+ =?us-ascii?Q?GzL5GCbujx8bVU/Sozq0hYnLCwMa?=
+Content-Type: multipart/alternative;
+	boundary="_000_5849B298217844F4B741575AC06BBBB6hotmailcom_"
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR19MB5611
+X-IncomingHeaderCount: 40
+Return-Path: rfremmer@hotmail.com
+X-MS-Exchange-Organization-ExpirationStartTime: 12 Jan 2026 00:09:58.1909
+ (UTC)
+X-MS-Exchange-Organization-ExpirationStartTimeReason: OriginalSubmit
+X-MS-Exchange-Organization-ExpirationInterval: 1:00:00:00.0000000
+X-MS-Exchange-Organization-ExpirationIntervalReason: OriginalSubmit
+X-MS-Exchange-Organization-Network-Message-Id: c4c6e5c5-0fad-4f1a-f37f-08de516eec0f
+X-EOPAttributedMessage: 0
+X-EOPTenantAttributedMessage: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa:0
+X-MS-Exchange-Organization-MessageDirectionality: Incoming
+X-MS-Exchange-Transport-CrossTenantHeadersStripped: SJ1PEPF00001CEB.namprd03.prod.outlook.com
+X-MS-Exchange-Transport-CrossTenantHeadersPromoted: SJ1PEPF00001CEB.namprd03.prod.outlook.com
+X-MS-PublicTrafficType: Email
+X-MS-Exchange-Organization-AuthSource: SJ1PEPF00001CEB.namprd03.prod.outlook.com
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-UserLastLogonTime: 1/12/2026 12:09:25 AM
+X-MS-Office365-Filtering-Correlation-Id-Prvs: fd3e1ec3-979e-47e1-0277-08de516eeaf1
+X-MS-Exchange-EOPDirect: true
+X-Sender-IP: 52.103.12.16
+X-SID-PRA: RFREMMER@HOTMAIL.COM
+X-SID-Result: PASS
+X-MS-Exchange-AtpMessageProperties: SA|SL
+X-MS-Exchange-Organization-SCL: 1
+X-Microsoft-Antispam: BCL:0;ARA:1444111002|461199028|7140799003|19300799024|3412199025|440099028|30041999003|1360799030|1380799030|1370799030|56899033|1710799026;
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jan 2026 00:09:57.9412
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c4c6e5c5-0fad-4f1a-f37f-08de516eec0f
+X-MS-Exchange-CrossTenant-Id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-AuthSource: SJ1PEPF00001CEB.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: Internet
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR19MB6113
+X-MS-Exchange-Transport-EndToEndLatency: 00:00:01.5976763
+X-MS-Exchange-Processed-By-BccFoldering: 15.20.9499.005
+X-Microsoft-Antispam-Mailbox-Delivery:
+	ucf:0;jmr:0;ex:0;auth:1;dest:I;ENG:(5062000311)(920221119095)(90000117)(920221120095)(90011020)(91015020)(91040095)(9050020)(9081003)(9095020)(9100341)(944500132)(2008001181)(4810010)(4910033)(9930004)(9545005)(10172021)(9320005)(120001)(1110175);
+X-Message-Delivery: Vj0xLjE7dXM9MDtsPTA7YT0wO0Q9MTtHRD0xO1NDTD0tMQ==
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?t8x3n2M0KvEAUW2CHxAlUZvgyP4hrrW/10hCJqBwuzoAJQyha9sVScrcdXIw?=
+ =?us-ascii?Q?JZMx9DfvYoJHq/HKcCqlgH7+Ag1Lb4WJWDKwT/60WBwrV1504x8II3quh4Da?=
+ =?us-ascii?Q?uK0d7U6QI3NAjCkF94lDrbGf5mWHumUR6P5JMWy67NATVt1E9ESLrjqGjPiM?=
+ =?us-ascii?Q?EGbdXqasoL6P5pPMpjTqEWwymrkHbCj41eq7caffn2k5J62lcdDOeRP7P8m4?=
+ =?us-ascii?Q?4X62lx8oEg9MI5RkYpxI7bVAbOVoN+yXiOZxH97wJUZcc9k32M5kxAKayVyX?=
+ =?us-ascii?Q?TJdKhwYHOjFm+qqP8bplGKphDo07v6zIibLVYPh6H/MBifLMtjOjQ+rD+xWz?=
+ =?us-ascii?Q?Froc95m02YRdu+PfonBYnVslopqLwS901a5xtfADMCPjw0rZwOzzBYKrdN3B?=
+ =?us-ascii?Q?Tq2P6fq1Wwua9ExEK+hJ4BdHHtil3dEKGG4Eqs3EhSGHyw149FzpS1dQN35e?=
+ =?us-ascii?Q?h4lYUuE1ZBSjo7chFp9z0tKYOAmhBSTB4ev5YSclFjOWdRPWGzJgXbvevuoG?=
+ =?us-ascii?Q?yycAKoHFLzfu1uetKPMddqfQKghtH0/2fpVmRJ3NuXU29PJQI2ucwqUK8JGm?=
+ =?us-ascii?Q?HBBMfoJ7vMYVJEafCQELOApM6cRIp1/LbuaWAJlGm3ex8ANO0Q6FVxdKRF9s?=
+ =?us-ascii?Q?MWB4gZ0tVrYxEA8HbY8R+yon5CBbXFgzfSPrkGTVTwFct8BbdNuuVnettNzL?=
+ =?us-ascii?Q?eehjzg4agpfWKEaOR2Qbc1SJXmShnJmbG4gVvYfezJ3vBOpKbEDe3CxsZdi9?=
+ =?us-ascii?Q?6YLhLFVxD/fu8iJZAgRHIEFE5UyUg5juMq432q1qzFl9ia3T5Pxm4ekTUB9S?=
+ =?us-ascii?Q?SRm+AkZWCQy5g1o2PupEnEQ/xSaTqESol+ToPejj/6Py5ke+5H+mKhi5r7Sh?=
+ =?us-ascii?Q?3fF1hPqUb//wKRy3inP3nyu2q1TYtavJ1TRQtNSzNhkmIKj1qoOMAIriW5jH?=
+ =?us-ascii?Q?kEVNd2OHbmXiXNdZ0GqgIUr3LAeZccAUuUAUObL1LkEmolGqaG+WfYdOOq7q?=
+ =?us-ascii?Q?ln4HAjVMXzC7pwjJnWDEwrl7IjtwKUQq6S97Z9RJfcxeEXqC02OjV5i+RHlD?=
+ =?us-ascii?Q?H4XOFLboLZzHXTrH86vOzMfKBqHHIDEh9v2GS224bYDxtdbfMpZjlAfRv1wq?=
+ =?us-ascii?Q?vlGlaDXb4m+P6F2s/OFUg9BXyi+x8me1mlTVtPXjMHBAJuwvMl5SZ2iF02hT?=
+ =?us-ascii?Q?8oxKpHVX8WPzybW+Ysb6vMGi4rxMKQIVxoVVHa8pgdVa5oV6hoLG5/DG6VcY?=
+ =?us-ascii?Q?93XBsp3ri3xw+VwCBY7A2W3GOfAu7HVH1LOiVdzet1C4/4Ey/h2om38Jmh1B?=
+ =?us-ascii?Q?i3NjVSZhXvgkVASuP8SrI0QxcTSzIDAtXuE5sfw+/8AwK0S0iwdEGGtlAAB9?=
+ =?us-ascii?Q?ZaRBhSwqXFeo2WAaXyugnrJD8IxHr233IKlErwIx2HQwYfGt6BXYn+ZWDYNK?=
+ =?us-ascii?Q?kwrLJ1DlUNjFOtRYhM3pG9zVW/gdUP5FAE9qCTiQA8DsOBA7bXUrWiLPULQF?=
+ =?us-ascii?Q?Y52+36Agqtbb8yqgRI+M37ovxQ/V2KE5eFw2x4DxgVeeCkG52dxEbWvZHJk2?=
+ =?us-ascii?Q?Wm1y9mFZQTVacvkb/5w7ZqWZnWJyP8mnSIYt8zuRvPxTK6uTJ3beLjDiP4NW?=
+ =?us-ascii?Q?bl7Evrls8hiF6tVGoEp14P6bS44wEACTKQXVOhLwMWRcnyQM5H8WMW217+ey?=
+ =?us-ascii?Q?GjsUUGAG7ah2ZzbCITnbTsHOTaN8aQP6KjDQqcyeDatvg26j27Qk0pOr/zSc?=
+ =?us-ascii?Q?9bjhZ/FxZX4dudlhDs3mo+21qoVQk66ucdzJoF+qDZy2M24CiuQw/inCQqFJ?=
+ =?us-ascii?Q?sC6/rK0AZArF80GaYr/6V70GgywQs2e6BMUi/xL6VkgX/ZxQmP0DO6Bbvx+F?=
+ =?us-ascii?Q?fhMl3pFGkiS7+fUjiQCmsLWzBTnKNI1lRtVYYW+gg3lzQWkkwaW6PZpT+NAi?=
+ =?us-ascii?Q?5hxwkkSM35BQ728Kiea0suZnpJMsJcjraMvAxMWrDXtNqLOjrvSD081NF8Ns?=
+ =?us-ascii?Q?avxiFT8EqFWbgmCK18i/vZbrp3c90MM5APHtDWmqZtagtMuJBtc2CQdowqCS?=
+ =?us-ascii?Q?Tuy4jj4ciXI2kX8wLA/Zz1Q/hk80qw=3D=3D?=
+MIME-Version: 1.0
+
+--_000_5849B298217844F4B741575AC06BBBB6hotmailcom_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Mark,
+
+I am writing to formally update you that I have paused the insulation work.=
+ The mold issue has now appeared in a second room, and the root cause has b=
+een confirmed as a severe ventilation imbalance (Vacuum Effect) caused by t=
+he roof system installed in April 2024.
+
+I have consulted with independent roofing specialists to verify the physics=
+. I am submitting this Warranty Claim based on manufacturer specifications,=
+ your original contract (Quote #203), and your recent text admission regard=
+ing the airflow.
+
+1. The Engineering Failure (The Math)
+
+Your Quote #203 guaranteed "Adequate Venting." The current system is mathem=
+atically incapable of providing it:
+
+  *   Exhaust: The 60-foot Omni Ridge Vent pulls 1,080 sq. in. of air.
+
+  *   Intake: The 12 SV-50 vents provide (at best) 600 sq. in. of intake.
+
+  *   The Result: A massive intake deficit that creates negative pressure, =
+sucking warm, dirty air from my living space into the attic.
+
+2. Your Admission of Incompatibility
+
+In your text to me on Jan 11, you stated: "If these soffits were to get con=
+verted / vented. Those low air vents would alter the air flow by exhaust in=
+stead of drawing air."
+
+You are correct. This confirms that the SV-50 vents you installed cannot co=
+exist with a proper intake system. To fix the house, we must install contin=
+uous soffit venting (to get the required 1,080 sq. in.), which means your S=
+V-50 vents must be removed to prevent them from short-circuiting the airflo=
+w.
+
+3. Product Misuse (Manufacturer Spec)
+
+Furthermore, I have verified with Menzies Metal Products that the SV-50 is =
+"Not to be used as an intake vent." It is designed for exhaust on steep roo=
+fs. Using them as intake on a 4/12 slope is a prohibited application that v=
+oids the performance specs.
+
+________________________________
+The Resolution Plan (The "Split Solution")
+
+I want to resolve this amicably. I understand that cutting stucco soffits i=
+s specialized work, so I am offering a solution that saves you from that la=
+bor/expense.
+
+My Part (The Upgrade): I will hire and pay for a specialized siding company=
+ (e.g., Parker Johnston) to cut the continuous soffit vents. This ensures t=
+he house finally gets the 1,080 sq. in. of intake it needs.
+
+Your Part (Warranty Repair): You simply need to remove the 12 non-compliant=
+ SV-50 vents and patch the roof deck/shingles at your cost.
+
+Requirement for the Repair: To ensure the integrity of the roof deck, the p=
+atch must be done correctly:
+
+  1.  Plywood plugs securely fastened.
+
+  2.  New underlayment (Roofnado) tucked shingle-fashion under the existing=
+ upper course (not just pasted on top).
+
+  3.  Photo Verification: For my insurance records, I require a photo of th=
+e underlayment install at each of the 12 locations before the shingles are =
+nailed down.
+
+Next Steps: This solution relieves you of the difficult stucco work while c=
+orrecting the "Adequate Venting" failure. Please confirm you agree to this =
+plan so I can coordinate your patch crew with my siding crew.
+
+Regards,
+
+Richard Fremmerlid 1517 San Juan Ave, Victoria 250-885-7003
+
+--_000_5849B298217844F4B741575AC06BBBB6hotmailcom_
+Content-Type: text/html; charset="us-ascii"
+Content-ID: <3A60BF7E8BD29B4893B2E38C3DE91DBA@namprd19.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+
+<html aria-label=3D"message body"><head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dus-ascii"=
+>
+</head>
+<body style=3D"overflow-wrap: break-word; -webkit-nbsp-mode: space; line-br=
+eak: after-white-space;">
+<p data-path-to-node=3D"6">Hi Mark,</p>
+<p data-path-to-node=3D"7">I am writing to formally update you that I have =
+paused the insulation work. The mold issue has now appeared in a second roo=
+m, and the root cause has been confirmed as a severe&nbsp;<b data-path-to-n=
+ode=3D"7" data-index-in-node=3D"176">ventilation
+ imbalance</b>&nbsp;(Vacuum Effect) caused by the roof system installed in =
+April 2024.</p>
+<p data-path-to-node=3D"8">I have consulted with independent roofing specia=
+lists to verify the physics. I am submitting this&nbsp;<b data-path-to-node=
+=3D"8" data-index-in-node=3D"98">Warranty Claim</b>&nbsp;based on manufactu=
+rer specifications, your original contract (Quote
+ #203), and your recent text admission regarding the airflow.</p>
+<h3 data-path-to-node=3D"9">1. The Engineering Failure (The Math)</h3>
+<p data-path-to-node=3D"10">Your Quote #203 guaranteed &quot;Adequate Venti=
+ng.&quot; The current system is mathematically incapable of providing it:</=
+p>
+<ul data-path-to-node=3D"11">
+<li>
+<p data-path-to-node=3D"11,0,0"><b data-path-to-node=3D"11,0,0" data-index-=
+in-node=3D"0">Exhaust:</b>&nbsp;The 60-foot Omni Ridge Vent pulls&nbsp;<b d=
+ata-path-to-node=3D"11,0,0" data-index-in-node=3D"43">1,080 sq. in.</b>&nbs=
+p;of air.</p>
+</li><li>
+<p data-path-to-node=3D"11,1,0"><b data-path-to-node=3D"11,1,0" data-index-=
+in-node=3D"0">Intake:</b>&nbsp;The 12 SV-50 vents provide (at best)&nbsp;<b=
+ data-path-to-node=3D"11,1,0" data-index-in-node=3D"45">600 sq. in.</b>&nbs=
+p;of intake.</p>
+</li><li>
+<p data-path-to-node=3D"11,2,0"><b data-path-to-node=3D"11,2,0" data-index-=
+in-node=3D"0">The Result:</b>&nbsp;A massive intake deficit that creates ne=
+gative pressure, sucking warm, dirty air from my living space into the atti=
+c.</p>
+</li></ul>
+<h3 data-path-to-node=3D"12">2. Your Admission of Incompatibility</h3>
+<p data-path-to-node=3D"13">In your text to me on Jan 11, you stated:&nbsp;=
+<i data-path-to-node=3D"13" data-index-in-node=3D"42">&quot;If these soffit=
+s were to get converted / vented. Those low air vents would alter the air f=
+low by exhaust instead of drawing air.&quot;</i></p>
+<p data-path-to-node=3D"14">You are correct. This confirms that the SV-50 v=
+ents you installed&nbsp;<b data-path-to-node=3D"14" data-index-in-node=3D"6=
+6">cannot coexist</b>&nbsp;with a proper intake system. To fix the house, w=
+e must install continuous soffit venting (to get
+ the required 1,080 sq. in.), which means your SV-50 vents&nbsp;<b data-pat=
+h-to-node=3D"14" data-index-in-node=3D"236">must be removed</b>&nbsp;to pre=
+vent them from short-circuiting the airflow.</p>
+<h3 data-path-to-node=3D"15">3. Product Misuse (Manufacturer Spec)</h3>
+<p data-path-to-node=3D"16">Furthermore, I have verified with Menzies Metal=
+ Products that the SV-50 is&nbsp;<b data-path-to-node=3D"16" data-index-in-=
+node=3D"75">&quot;Not to be used as an intake vent.&quot;</b>&nbsp;It is de=
+signed for exhaust on steep roofs. Using them as intake on
+ a 4/12 slope is a prohibited application that voids the performance specs.=
+</p>
+<hr data-path-to-node=3D"17">
+<h3 data-path-to-node=3D"18">The Resolution Plan (The &quot;Split Solution&=
+quot;)</h3>
+<p data-path-to-node=3D"19">I want to resolve this amicably. I understand t=
+hat cutting stucco soffits is specialized work, so I am offering a solution=
+ that saves you from that labor/expense.</p>
+<p data-path-to-node=3D"20"><b data-path-to-node=3D"20" data-index-in-node=
+=3D"0">My Part (The Upgrade):</b>&nbsp;I will hire and pay for a specialize=
+d siding company (e.g., Parker Johnston) to cut the continuous soffit vents=
+. This ensures the house finally gets the&nbsp;<b data-path-to-node=3D"20" =
+data-index-in-node=3D"176">1,080
+ sq. in.</b>&nbsp;of intake it needs.</p>
+<p data-path-to-node=3D"21"><b data-path-to-node=3D"21" data-index-in-node=
+=3D"0">Your Part (Warranty Repair):</b>&nbsp;You simply need to&nbsp;<b dat=
+a-path-to-node=3D"21" data-index-in-node=3D"48">remove the 12 non-compliant=
+ SV-50 vents</b>&nbsp;and patch the roof deck/shingles at
+ your cost.</p>
+<p data-path-to-node=3D"22"><b data-path-to-node=3D"22" data-index-in-node=
+=3D"0">Requirement for the Repair:</b>&nbsp;To ensure the integrity of the =
+roof deck, the patch must be done correctly:</p>
+<ol start=3D"1" data-path-to-node=3D"23">
+<li>
+<p data-path-to-node=3D"23,0,0">Plywood plugs securely fastened.</p>
+</li><li>
+<p data-path-to-node=3D"23,1,0">New underlayment (Roofnado) tucked&nbsp;<b =
+data-path-to-node=3D"23,1,0" data-index-in-node=3D"35">shingle-fashion unde=
+r</b>&nbsp;the existing upper course (not just pasted on top).</p>
+</li><li>
+<p data-path-to-node=3D"23,2,0"><b data-path-to-node=3D"23,2,0" data-index-=
+in-node=3D"0">Photo Verification:</b>&nbsp;For my insurance records, I requ=
+ire a photo of the underlayment install at each of the 12 locations&nbsp;<i=
+ data-path-to-node=3D"23,2,0" data-index-in-node=3D"120">before</i>&nbsp;th=
+e
+ shingles are nailed down.</p>
+</li></ol>
+<p data-path-to-node=3D"24"><b data-path-to-node=3D"24" data-index-in-node=
+=3D"0">Next Steps:</b>&nbsp;This solution relieves you of the difficult stu=
+cco work while correcting the &quot;Adequate Venting&quot; failure. Please =
+confirm you agree to this plan so I can coordinate your
+ patch crew with my siding crew.</p>
+<p data-path-to-node=3D"25">Regards,</p>
+<p data-path-to-node=3D"26">Richard Fremmerlid 1517 San Juan Ave, Victoria =
+250-885-7003</p>
+</body>
+</html>
+
+--_000_5849B298217844F4B741575AC06BBBB6hotmailcom_--

@@ -1,0 +1,10 @@
+{
+  "sources": [
+    {
+      "source": "anthropics/skills",
+      "plugins": [
+        "anthropics_skills"
+      ]
+    }
+  ]
+}

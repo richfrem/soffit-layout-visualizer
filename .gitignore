@@ -1,0 +1,7 @@
+.DS_Store
+.agents/
+.claude/
+node_modules/
+dist/
+build/
+*.log
