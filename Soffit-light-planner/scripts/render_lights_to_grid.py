@@ -39,9 +39,8 @@ for zone, lights in zones.items():
                 f'x="{light["x"] - 5.5}" y="{light["y"] - 5.5}" width="11" height="11" />'
             )
         elif zone == "Security Cameras":
-            # Render as orange star
-            # Small 5-pointed star points centered at 0,0
-            star_pts = "0,-8.5 2.5,-3 8.5,-3 4,1 5,7 0,3.5 -5,7 -4,1 -8.5,-3 -2.5,-3"
+            # Render as orange star (Increased size)
+            star_pts = "0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4"
             svg_lines.append(
                 f'  <polygon id="light_{safe_id}_{i}" fill="#FF8C00" '
                 f'points="{star_pts}" transform="translate({light["x"]},{light["y"]})" />'
@@ -55,10 +54,28 @@ for zone, lights in zones.items():
         total += 1
 svg_lines.append('</g>')
 
+# --- LEGEND ---
+legend_star_pts = "0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4"
+legend_lines = [
+    '<!-- LEGEND -->',
+    '<g id="legend" font-family="Arial,Helvetica,sans-serif" font-size="10" fill="#333333">',
+    '  <rect x="495" y="1100" width="180" height="70" fill="#FFFFFF" fill-opacity="0.8" stroke="#0055cc" stroke-width="1" rx="5" />',
+    '  <circle cx="515" cy="1115" r="5.5" fill="#FF0000" stroke="#FFFFFF" stroke-width="1" />',
+    '  <text x="530" y="1119">Soffit Light</text>',
+    '  <rect x="509.5" y="1130.5" width="11" height="11" fill="#00D2FF" stroke="#FFFFFF" stroke-width="1" />',
+    '  <text x="530" y="1139">Wall Light</text>',
+    f'  <polygon points="{legend_star_pts}" fill="#FF8C00" stroke="#FFFFFF" stroke-width="1" transform="translate(515,1156)" />',
+    '  <text x="530" y="1160">Security Camera</text>',
+    '</g>'
+]
+
+# Remove old legend if exists
+content = re.sub(r'<!-- LEGEND -->.*?</g>\n?', '', content, flags=re.DOTALL)
+
 if '<!-- DEBUG GRID -->' in content:
-    content = content.replace('<!-- DEBUG GRID -->', '\n'.join(svg_lines) + '\n<!-- DEBUG GRID -->')
+    content = content.replace('<!-- DEBUG GRID -->', '\n'.join(svg_lines) + '\n' + '\n'.join(legend_lines) + '\n<!-- DEBUG GRID -->')
 else:
-    content = content.replace('</svg>', '\n'.join(svg_lines) + '\n</svg>')
+    content = content.replace('</svg>', '\n'.join(svg_lines) + '\n' + '\n'.join(legend_lines) + '\n</svg>')
 
 with open(svg_grid, 'w') as f:
     f.write(content)

@@ -28,9 +28,9 @@
             "description": "North front - Garage face (20'2\")",
             "visible": true,
             "x1": 0,
-            "y1": 1040,
+            "y1": 1050,
             "x2": 340,
-            "y2": 1040,
+            "y2": 1050,
             "label": "20'2\"",
             "label_offset": 20,
             "color": "#0055cc"

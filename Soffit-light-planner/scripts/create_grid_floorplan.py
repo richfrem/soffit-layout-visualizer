@@ -109,9 +109,8 @@ for zone, lights in zones.items():
                 f'x="{light["x"] - 5.5}" y="{light["y"] - 5.5}" width="11" height="11" />'
             )
         elif zone == "Security Cameras":
-            # Render as orange star
-            # Small 5-pointed star points centered at 0,0
-            star_pts = "0,-8.5 2.5,-3 8.5,-3 4,1 5,7 0,3.5 -5,7 -4,1 -8.5,-3 -2.5,-3"
+            # Render as orange star (Increased size)
+            star_pts = "0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4"
             light_lines.append(
                 f'  <polygon id="light_{safe_id}_{i}" fill="#FF8C00" '
                 f'points="{star_pts}" transform="translate({light["x"]},{light["y"]})" />'
@@ -124,6 +123,21 @@ for zone, lights in zones.items():
             )
         total += 1
 light_lines.append('</g>')
+
+# 3c. Add Legend ─────────────────────────────────────────────────────────────
+legend_star_pts = "0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4"
+legend_lines = [
+    '<!-- LEGEND -->',
+    '<g id="legend" font-family="Arial,Helvetica,sans-serif" font-size="10" fill="#333333">',
+    '  <rect x="495" y="1100" width="180" height="70" fill="#FFFFFF" fill-opacity="0.8" stroke="#0055cc" stroke-width="1" rx="5" />',
+    '  <circle cx="515" cy="1115" r="5.5" fill="#FF0000" stroke="#FFFFFF" stroke-width="1" />',
+    '  <text x="530" y="1119">Soffit Light</text>',
+    '  <rect x="509.5" y="1130.5" width="11" height="11" fill="#00D2FF" stroke="#FFFFFF" stroke-width="1" />',
+    '  <text x="530" y="1139">Wall Light</text>',
+    f'  <polygon points="{legend_star_pts}" fill="#FF8C00" stroke="#FFFFFF" stroke-width="1" transform="translate(515,1156)" />',
+    '  <text x="530" y="1160">Security Camera</text>',
+    '</g>'
+]
 
 # 3b. Raw-unit coordinate labels every 50 units — top row and right column ──
 #     These match exactly what you type in perimeter_lights.json.
@@ -168,7 +182,7 @@ while y <= y_end + 0.01:
 coord_lines.append('</g>')
 
 # 4. Inject both blocks before </svg> ─────────────────────────────────────────
-injection = '\n'.join(light_lines) + '\n' + '\n'.join(grid_lines) + '\n' + '\n'.join(coord_lines) + '\n'
+injection = '\n'.join(light_lines) + '\n' + '\n'.join(grid_lines) + '\n' + '\n'.join(coord_lines) + '\n' + '\n'.join(legend_lines) + '\n'
 text = text.replace('</svg>', injection + '</svg>')
 
 

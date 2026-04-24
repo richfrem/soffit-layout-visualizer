@@ -167,7 +167,17 @@
   <rect id="light_wall_lights_1" fill="#00D2FF" x="284.5" y="256.5" width="11" height="11" />
   <rect id="light_wall_lights_2" fill="#00D2FF" x="331.5" y="964.5" width="11" height="11" />
   <!-- Security Cameras -->
-  <polygon id="light_security_cameras_0" fill="#FF8C00" points="0,-8.5 2.5,-3 8.5,-3 4,1 5,7 0,3.5 -5,7 -4,1 -8.5,-3 -2.5,-3" transform="translate(330.0,1055)" />
+  <polygon id="light_security_cameras_0" fill="#FF8C00" points="0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4" transform="translate(330.0,1055)" />
+</g>
+<!-- LEGEND -->
+<g id="legend" font-family="Arial,Helvetica,sans-serif" font-size="10" fill="#333333">
+  <rect x="495" y="1100" width="180" height="70" fill="#FFFFFF" fill-opacity="0.8" stroke="#0055cc" stroke-width="1" rx="5" />
+  <circle cx="515" cy="1115" r="5.5" fill="#FF0000" stroke="#FFFFFF" stroke-width="1" />
+  <text x="530" y="1119">Soffit Light</text>
+  <rect x="509.5" y="1130.5" width="11" height="11" fill="#00D2FF" stroke="#FFFFFF" stroke-width="1" />
+  <text x="530" y="1139">Wall Light</text>
+  <polygon points="0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4" fill="#FF8C00" stroke="#FFFFFF" stroke-width="1" transform="translate(515,1156)" />
+  <text x="530" y="1160">Security Camera</text>
 </g>
 <!-- DEBUG GRID -->
 <g id="debug_grid" stroke="#8bafd4" stroke-width="0.5" opacity="0.65" font-family="Arial,Helvetica,sans-serif" font-size="9" fill="#1a4a8a">
@@ -435,6 +445,7 @@
 
 
 
+
 <!-- DIMENSION ARROWS -->
 
   <!-- Dimension: south_wall_total -->
@@ -464,12 +475,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0055cc" />
     </marker>
   </defs>
-  <line x1="0.0" y1="1060.0" x2="340.0" y2="1060.0"
+  <line x1="0.0" y1="1070.0" x2="340.0" y2="1070.0"
         stroke="#0055cc" stroke-width="1.5"
         marker-start="url(#arrowhead_north_garage_face)"
         marker-end="url(#arrowhead_north_garage_face)" />
-  <text x="170.0" y="1060.0"
-        transform="rotate(0.0,170.0,1060.0)"
+  <text x="170.0" y="1070.0"
+        transform="rotate(0.0,170.0,1070.0)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
