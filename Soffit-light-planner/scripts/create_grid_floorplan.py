@@ -102,10 +102,26 @@ for zone, lights in zones.items():
     light_lines.append(f'  <!-- {zone} -->')
     for i, light in enumerate(lights):
         safe_id = re.sub(r'[^a-z0-9_]', '_', zone.lower())
-        light_lines.append(
-            f'  <circle id="light_{safe_id}_{i}" '
-            f'cx="{light["x"]}" cy="{light["y"]}" r="5.5" />'
-        )
+        if zone == "Wall lights":
+            # Render as square with bright blue fill
+            light_lines.append(
+                f'  <rect id="light_{safe_id}_{i}" fill="#00D2FF" '
+                f'x="{light["x"] - 5.5}" y="{light["y"] - 5.5}" width="11" height="11" />'
+            )
+        elif zone == "Security Cameras":
+            # Render as orange star
+            # Small 5-pointed star points centered at 0,0
+            star_pts = "0,-8.5 2.5,-3 8.5,-3 4,1 5,7 0,3.5 -5,7 -4,1 -8.5,-3 -2.5,-3"
+            light_lines.append(
+                f'  <polygon id="light_{safe_id}_{i}" fill="#FF8C00" '
+                f'points="{star_pts}" transform="translate({light["x"]},{light["y"]})" />'
+            )
+        else:
+            # Render as circle
+            light_lines.append(
+                f'  <circle id="light_{safe_id}_{i}" '
+                f'cx="{light["x"]}" cy="{light["y"]}" r="5.5" />'
+            )
         total += 1
 light_lines.append('</g>')
 
