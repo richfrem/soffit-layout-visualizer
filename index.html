@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soffit Layout Visualizer 2.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0f0f12;
+            --bg-card: #1c1c21;
+            --accent-gold: #ffd60a;
+            --accent-green: #52b788;
+            --accent-red: #e63946;
+            --text-main: #f5f5f7;
+            --text-dim: #a0a0a5;
+            --wood-fill: #c2b280;
+            --vent-fill: #343a40;
+            --border: #2c2c34;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text-main) 0%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-gold);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent-gold);
+        }
+
+        input[type="number"], select {
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            width: 80px;
+            text-align: center;
+        }
+
+        .btn-toggle-group {
+            display: flex;
+            background: var(--bg-deep);
+            padding: 0.25rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .btn-toggle {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 7px;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle.active {
+            background: var(--border);
+            color: var(--accent-gold);
+        }
+
+        /* Canvas Area */
+        .visualizer-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 250px;
+            background-color: var(--bg-deep);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 60px;
+        }
+
+        .boundary {
+            width: 60px;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+            z-index: 10;
+        }
+
+        .boundary.left {
+            left: 0;
+            background: #d5dbdb;
+            color: #2c3e50;
+        }
+
+        .boundary.right {
+            right: 0;
+            background: #2c3e50;
+            color: #ffffff;
+        }
+
+        .layout-tray {
+            flex: 1;
+            height: 140px;
+            display: flex;
+            align-items: center;
+        }
+
+        .course {
+            height: 100%;
+            border: 1px solid rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .course-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #121214;
+            transform: rotate(-90deg);
+            white-space: nowrap;
+        }
+
+        .course-width {
+            position: absolute;
+            top: -25px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        /* Results / Table */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            color: var(--accent-green);
+            padding-bottom: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        td {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .total-row {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-green);
+        }
+
+        .big-number-card {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .big-val {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            line-height: 1;
+        }
+
+        .big-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        /* Manual List */
+        .manual-tray {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .manual-btn {
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .manual-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .manual-btn.primary {
+            background: var(--accent-gold);
+            color: var(--bg-deep);
+            border: none;
+            font-weight: 700;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Soffit Layout Visualizer 2.0</h1>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Architectural Design & Material Calculator</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Sidebar Controls -->
+            <div class="card">
+                <div class="section-title">📏 Global Depth</div>
+                <div class="control-group">
+                    <label>Box Depth (Inches)</label>
+                    <div class="input-row">
+                        <input type="range" id="depth-slider" min="20" max="30" step="0.25" value="23">
+                        <input type="number" id="depth-num" value="23.00" step="0.25">
+                    </div>
+                </div>
+
+                <div class="section-title">🪵 Material Settings</div>
+                <div class="control-group">
+                    <label>Board Type</label>
+                    <div class="btn-toggle-group" id="board-type">
+                        <button class="btn-toggle active" data-val="1x4">3 3/8" (CVG Fir)</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Vent Type</label>
+                    <div class="btn-toggle-group" id="vent-type">
+                        <button class="btn-toggle active" data-val="ventStrip">Continuous Vent (2 1/2")</button>
+                    </div>
+                </div>
+
+                <div class="section-title">📐 Layout Logic</div>
+                <div class="control-group">
+                    <label>Mode</label>
+                    <div class="btn-toggle-group" id="auto-mode">
+                        <button class="btn-toggle active" data-val="auto">Auto-Fit</button>
+                        <button class="btn-toggle" data-val="manual">Manual Builder</button>
+                    </div>
+                </div>
+
+                <div id="auto-controls">
+                    <div class="control-group">
+                        <label>Vent Position</label>
+                        <select id="vent-pos" style="width: 100%;">
+                            <option value="center">Centered</option>
+                            <option value="inner">1 Board Deep (Wall-side)</option>
+                            <option value="outer">Gutter-side</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-title">📦 Inventory Planning</div>
+                <div class="control-group">
+                    <label>Main House 23" Run (LF)</label>
+                    <input type="number" id="lf-23" value="238" style="width: 100%; margin-bottom: 0.5rem;">
+                    <label>Entrance 24" Run (LF)</label>
+                    <input type="number" id="lf-24" value="0" style="width: 100%; margin-bottom: 0.5rem;">
+                </div>
+                <div class="control-group">
+                    <label>Stock: 12' | 11' | 6'</label>
+                    <div class="input-row">
+                        <input type="number" id="pcs-12" value="103" style="width: 30%;">
+                        <input type="number" id="pcs-11" value="55" style="width: 30%;">
+                        <input type="number" id="pcs-6" value="2" style="width: 30%;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Waste %</label>
+                    <input type="number" id="waste-pct" value="10" style="width: 100%;">
+                </div>
+
+                <div id="manual-controls" class="hidden">
+                    <div class="manual-tray">
+                        <button class="manual-btn" onclick="addCourse('wood')">+ Wood</button>
+                        <button class="manual-btn" onclick="addCourse('vent')">+ Vent</button>
+                        <button class="manual-btn" onclick="undoCourse()">Undo</button>
+                        <button class="manual-btn" onclick="clearLayout()" style="color: var(--accent-red);">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Main -->
+            <div class="visualizer-card">
+                <div class="card" style="padding: 0; overflow: hidden; position: relative;">
+                    <div class="canvas-container" id="canvas">
+                        <div class="boundary left">STUCCO<br>WALL</div>
+                        <div class="layout-tray" id="tray">
+                            <!-- Courses injected here -->
+                        </div>
+                        <div class="boundary right">GUTTER<br>(Fascia)</div>
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="card">
+                        <div class="section-title">📋 Whole-Job Estimator</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Planned</th>
+                                    <th>Inventory</th>
+                                    <th>Surplus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Data injected here -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="2">Enough Coverage?</td>
+                                    <td id="grand-total" colspan="2" style="text-align: right;">YES</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="card big-number-card">
+                        <div class="big-label">TOTAL PREVIEW WIDTH</div>
+                        <div class="big-val" id="total-preview-width">23.0"</div>
+                        <div class="big-label" style="margin-top: 1rem;">ESTIMATED WOOD SQFT</div>
+                        <div class="big-val" id="total-wood-sqft" style="color: var(--accent-green); font-size: 2rem;">500</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * index.html
+         * ================
+         *
+         * Purpose:
+         *   Web-based interactive visualizer for soffit layout planning. 
+         *   Provides a modern UI for material estimation and layout preview.
+         *
+         * Key Functions:
+         *   - update() - Recalculates the layout and triggers rendering/calculation.
+         *   - render() - Injects DOM elements for the visual preview tray.
+         *   - calculate() - Performs material math and updates the results table.
+         */
+
+        // State
+        /** @type {Object} Application state holding user selections and measurements. */
+        const state = {
+            boardType: '1x4',
+            ventType: 'ventStrip',
+            mode: 'auto',
+            ventPos: 'center',
+            manualLayout: [],
+            lf23: 238,
+            lf24: 0,
+            pcs12: 103,
+            pcs11: 55,
+            pcs6: 2,
+            wastePct: 10,
+            depth: 23
+        };
+
+        const boards = {
+            '1x4': 3.375
+        };
+
+        const vents = {
+            'ventStrip': 2.5
+        };
+
+        // DOM Elements
+        const slider = document.getElementById('depth-slider');
+        const numInput = document.getElementById('depth-num');
+        const tray = document.getElementById('tray');
+        const tableBody = document.getElementById('table-body');
+        const grandTotalEl = document.getElementById('grand-total');
+        const bigTotalWidthEl = document.getElementById('total-preview-width');
+        const bigWoodSqftEl = document.getElementById('total-wood-sqft');
+
+        // Logic
+        /**
+         * Core update loop. Generates the layout based on current state,
+         * then triggers rendering and calculation.
+         */
+        function update() {
+            let layout = [];
+            const woodW = boards[state.boardType];
+            const ventW = vents[state.ventType];
+
+            if (state.mode === 'auto') {
+                if (state.ventPos === 'center') {
+                    const usable = state.depth - ventW;
+                    const fullBoards = Math.floor(usable / woodW);
+                    const left = Math.floor(fullBoards / 2);
+                    const right = fullBoards - left;
+                    for (let i = 0; i < left; i++) layout.push({w: woodW, type: 'wood'});
+                    layout.push({w: ventW, type: 'vent'});
+                    for (let i = 0; i < right; i++) layout.push({w: woodW, type: 'wood'});
+                    
+                    const cur = (fullBoards * woodW) + ventW;
+                    if (state.depth - cur > 0.01) layout.push({w: state.depth - cur, type: 'rip'});
+                } else if (state.ventPos === 'outer') {
+                    const usable = state.depth - ventW;
+                    const fullBoards = Math.floor(usable / woodW);
+                    for (let i = 0; i < fullBoards; i++) layout.push({w: woodW, type: 'wood'});
+                    layout.push({w: ventW, type: 'vent'});
+                    const cur = (fullBoards * woodW) + ventW;
+                    if (state.depth - cur > 0.01) layout.push({w: state.depth - cur, type: 'rip'});
+                } else if (state.ventPos === 'inner') {
+                    layout.push({w: woodW, type: 'wood'});
+                    layout.push({w: ventW, type: 'vent'});
+                    const rem = state.depth - woodW - ventW;
+                    const fullBoards = Math.floor(rem / woodW);
+                    for (let i = 0; i < fullBoards; i++) layout.push({w: woodW, type: 'wood'});
+                    const cur = (fullBoards + 1) * woodW + ventW;
+                    if (state.depth - cur > 0.01) layout.push({w: state.depth - cur, type: 'rip'});
+                } else { // 1board-gutter
+                    const usable = state.depth - ventW - woodW;
+                    const fullBoards = Math.floor(usable / woodW);
+                    for (let i = 0; i < fullBoards; i++) layout.push({w: woodW, type: 'wood'});
+                    layout.push({w: ventW, type: 'vent'});
+                    layout.push({w: woodW, type: 'wood'});
+                    const cur = (fullBoards + 1) * woodW + ventW;
+                    if (state.depth - cur > 0.01) layout.push({w: state.depth - cur, type: 'rip'});
+                }
+            } else {
+                layout = state.manualLayout;
+            }
+
+            render(layout);
+            calculate(layout);
+        }
+
+        /**
+         * Renders the layout segments into the DOM tray.
+         * @param {Array<Object>} layout - Array of course objects {w, type}.
+         */
+        function render(layout) {
+            tray.innerHTML = '';
+            const totalW = layout.reduce((acc, c) => acc + c.w, 0);
+            
+            layout.forEach(c => {
+                const el = document.createElement('div');
+                el.className = 'course';
+                el.style.width = `${(c.w / state.depth) * 100}%`;
+                
+                if (c.type === 'wood') el.style.backgroundColor = 'var(--wood-fill)';
+                if (c.type === 'vent') el.style.backgroundColor = 'var(--vent-fill)';
+                if (c.type === 'rip') el.style.backgroundColor = '#e07a5f';
+
+                const label = document.createElement('span');
+                label.className = 'course-label';
+                label.textContent = c.type.toUpperCase();
+                if (c.type === 'vent') label.style.color = 'white';
+                el.appendChild(label);
+
+                const width = document.createElement('span');
+                width.className = 'course-width';
+                width.textContent = `${c.w.toFixed(2)}"`;
+                el.appendChild(width);
+
+                tray.appendChild(el);
+            });
+
+            bigTotalWidthEl.textContent = `${totalW.toFixed(2)}"`;
+            bigTotalWidthEl.style.color = Math.abs(totalW - state.depth) < 0.1 ? 'var(--accent-green)' : 'var(--accent-gold)';
+        }
+
+        /**
+         * Calculates material totals, square footage, and costs.
+         * @param {Array<Object>} layout - The current layout configuration.
+         */
+        function calculate(layout) {
+            // Whole-job Area
+            const plannedArea = (state.lf23 * 23 + state.lf24 * 24) / 12;
+            
+            // Inventory
+            const totalStockLF = (state.pcs12 * 12) + (state.pcs11 * 11) + (state.pcs6 * 6);
+            const grossSqft = (totalStockLF * boards['1x4']) / 12;
+            const usableSqft = grossSqft * (1 - state.wastePct / 100);
+            const surplus = usableSqft - plannedArea;
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td>Linear Run</td>
+                    <td>${(state.lf23 + state.lf24).toFixed(0)} LF</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Planned Area</td>
+                    <td>${plannedArea.toFixed(1)} SF</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Inventory Area</td>
+                    <td>-</td>
+                    <td>${grossSqft.toFixed(1)} SF</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Usable (-${state.wastePct}%)</td>
+                    <td>-</td>
+                    <td>${usableSqft.toFixed(1)} SF</td>
+                    <td>-</td>
+                </tr>
+                <tr style="border-top: 2px solid var(--accent-gold);">
+                    <td><b>SURPLUS</b></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td style="color: ${surplus >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}"><b>${surplus.toFixed(1)} SF</b></td>
+                </tr>
+            `;
+
+            grandTotalEl.textContent = surplus >= 0 ? "YES" : "NO (SHORTAGE)";
+            grandTotalEl.style.color = surplus >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+            bigWoodSqftEl.textContent = `${Math.round(plannedArea)}`;
+        }
+
+        // Handlers
+        slider.oninput = (e) => {
+            state.depth = parseFloat(e.target.value);
+            numInput.value = state.depth.toFixed(2);
+            update();
+        };
+
+        numInput.onchange = (e) => {
+            state.depth = parseFloat(e.target.value);
+            slider.value = state.depth;
+            numInput.value = state.depth.toFixed(2);
+            update();
+        };
+
+        document.querySelectorAll('#board-type .btn-toggle').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('#board-type .btn-toggle').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.boardType = btn.dataset.val;
+                update();
+            };
+        });
+
+        document.querySelectorAll('#vent-type .btn-toggle').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('#vent-type .btn-toggle').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.ventType = btn.dataset.val;
+                update();
+            };
+        });
+
+        document.querySelectorAll('#auto-mode .btn-toggle').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('#auto-mode .btn-toggle').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.mode = btn.dataset.val;
+                document.getElementById('auto-controls').classList.toggle('hidden', state.mode === 'manual');
+                document.getElementById('manual-controls').classList.toggle('hidden', state.mode === 'auto');
+                update();
+            };
+        });
+
+        document.getElementById('lf-23').oninput = (e) => { state.lf23 = parseFloat(e.target.value) || 0; update(); };
+        document.getElementById('lf-24').oninput = (e) => { state.lf24 = parseFloat(e.target.value) || 0; update(); };
+        document.getElementById('pcs-12').oninput = (e) => { state.pcs12 = parseInt(e.target.value) || 0; update(); };
+        document.getElementById('pcs-11').oninput = (e) => { state.pcs11 = parseInt(e.target.value) || 0; update(); };
+        document.getElementById('pcs-6').oninput = (e) => { state.pcs6 = parseInt(e.target.value) || 0; update(); };
+        document.getElementById('waste-pct').oninput = (e) => { state.wastePct = parseFloat(e.target.value) || 0; update(); };
+
+        document.getElementById('vent-pos').onchange = (e) => {
+            state.ventPos = e.target.value;
+            update();
+        };
+
+        window.addCourse = (type) => {
+            const w = type === 'wood' ? boards[state.boardType] : vents[state.ventType];
+            state.manualLayout.push({w, type});
+            update();
+        };
+
+        window.undoCourse = () => {
+            state.manualLayout.pop();
+            update();
+        };
+
+        window.clearLayout = () => {
+            state.manualLayout = [];
+            update();
+        };
+
+        // Init
+        update();
+    </script>
+</body>
+</html>
