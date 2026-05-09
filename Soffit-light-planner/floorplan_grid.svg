@@ -146,38 +146,28 @@
   <circle id="light_east_wall_0" cx="-15.0" cy="1010" r="5.5" />
   <circle id="light_east_wall_1" cx="-15.0" cy="880" r="5.5" />
   <circle id="light_east_wall_2" cx="-15.0" cy="740" r="5.5" />
-  <circle id="light_east_wall_3" cx="-15.0" cy="580" r="5.5" />
-  <circle id="light_east_wall_4" cx="-15.0" cy="430" r="5.5" />
-  <circle id="light_east_wall_5" cx="-15.0" cy="250" r="5.5" />
+  <circle id="light_east_wall_3" cx="-15.6" cy="585.0" r="5.5" />
+  <circle id="light_east_wall_4" cx="-15.6" cy="436.8" r="5.5" />
+  <circle id="light_east_wall_5" cx="-15.6" cy="249.6" r="5.5" />
   <!-- West Wall -->
-  <circle id="light_west_wall_0" cx="729.0" cy="900" r="5.5" />
-  <circle id="light_west_wall_1" cx="729.0" cy="625" r="5.5" />
-  <circle id="light_west_wall_2" cx="729.0" cy="350" r="5.5" />
+  <circle id="light_west_wall_0" cx="725.4" cy="889.2" r="5.5" />
+  <circle id="light_west_wall_1" cx="725.4" cy="616.2" r="5.5" />
+  <circle id="light_west_wall_2" cx="725.4" cy="374.4" r="5.5" />
   <!-- South Wall (Patio Cluster) -->
-  <circle id="light_south_wall__patio_cluster__0" cx="110.0" cy="250.0" r="5.5" />
+  <circle id="light_south_wall__patio_cluster__0" cx="109.2" cy="249.6" r="5.5" />
   <circle id="light_south_wall__patio_cluster__1" cx="240.0" cy="250.0" r="5.5" />
   <circle id="light_south_wall__patio_cluster__2" cx="510.0" cy="250.0" r="5.5" />
   <circle id="light_south_wall__patio_cluster__3" cx="650.0" cy="250.0" r="5.5" />
   <!-- Entrance Way -->
-  <circle id="light_entrance_way_0" cx="380.0" cy="930.0" r="5.5" />
+  <circle id="light_entrance_way_0" cx="382.2" cy="928.2" r="5.5" />
   <circle id="light_entrance_way_1" cx="355.0" cy="1010.0" r="5.5" />
-  <circle id="light_entrance_way_2" cx="440.0" cy="989.0" r="5.5" />
+  <circle id="light_entrance_way_2" cx="436.8" cy="982.8" r="5.5" />
   <!-- Wall lights -->
   <rect id="light_wall_lights_0" fill="#00D2FF" x="-7.5" y="644.5" width="11" height="11" />
   <rect id="light_wall_lights_1" fill="#00D2FF" x="284.5" y="256.5" width="11" height="11" />
   <rect id="light_wall_lights_2" fill="#00D2FF" x="331.5" y="964.5" width="11" height="11" />
   <!-- Security Cameras -->
-  <polygon id="light_security_cameras_0" fill="#FF8C00" points="0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4" transform="translate(330.0,1055)" />
-</g>
-<!-- LEGEND -->
-<g id="legend" font-family="Arial,Helvetica,sans-serif" font-size="10" fill="#333333">
-  <rect x="495" y="1100" width="180" height="70" fill="#FFFFFF" fill-opacity="0.8" stroke="#0055cc" stroke-width="1" rx="5" />
-  <circle cx="515" cy="1115" r="5.5" fill="#FF0000" stroke="#FFFFFF" stroke-width="1" />
-  <text x="530" y="1119">Soffit Light</text>
-  <rect x="509.5" y="1130.5" width="11" height="11" fill="#00D2FF" stroke="#FFFFFF" stroke-width="1" />
-  <text x="530" y="1139">Wall Light</text>
-  <polygon points="0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4" fill="#FF8C00" stroke="#FFFFFF" stroke-width="1" transform="translate(515,1156)" />
-  <text x="530" y="1160">Security Camera</text>
+  <polygon id="light_security_cameras_0" fill="#FF8C00" points="0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4" transform="translate(327.6,1060.8)" />
 </g>
 <!-- DEBUG GRID -->
 <g id="debug_grid" stroke="#8bafd4" stroke-width="0.5" opacity="0.65" font-family="Arial,Helvetica,sans-serif" font-size="9" fill="#1a4a8a">
@@ -435,17 +425,16 @@
   <text x="-135" y="1253" font-size="9" font-weight="bold">Y=1250</text>
   <text x="902" y="1253" font-size="9" font-weight="bold">Y=1250</text>
 </g>
-
-
-
-
-
-
-
-
-
-
-
+<!-- LEGEND -->
+<g id="legend" font-family="Arial,Helvetica,sans-serif" font-size="10" fill="#333333">
+  <rect x="495" y="1100" width="180" height="70" fill="#FFFFFF" fill-opacity="0.8" stroke="#0055cc" stroke-width="1" rx="5" />
+  <circle cx="515" cy="1115" r="5.5" fill="#FF0000" stroke="#FFFFFF" stroke-width="1" />
+  <text x="530" y="1119">Soffit Light</text>
+  <rect x="509.5" y="1130.5" width="11" height="11" fill="#00D2FF" stroke="#FFFFFF" stroke-width="1" />
+  <text x="530" y="1139">Wall Light</text>
+  <polygon points="0,-10.5 3,-4 10.5,-4 5,1 6,8.5 0,4.5 -6,8.5 -5,1 -10.5,-4 -3,-4" fill="#FF8C00" stroke="#FFFFFF" stroke-width="1" transform="translate(515,1156)" />
+  <text x="530" y="1160">Security Camera</text>
+</g>
 <!-- DIMENSION ARROWS -->
 
   <!-- Dimension: south_wall_total -->
@@ -455,12 +444,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0055cc" />
     </marker>
   </defs>
-  <line x1="0.0" y1="230.0" x2="714.0" y2="230.0"
+  <line x1="11.4" y1="194.0" x2="725.4" y2="194.0"
         stroke="#0055cc" stroke-width="1.5"
         marker-start="url(#arrowhead_south_wall_total)"
         marker-end="url(#arrowhead_south_wall_total)" />
-  <text x="357.0" y="230.0"
-        transform="rotate(0.0,357.0,230.0)"
+  <text x="368.4" y="194.0"
+        transform="rotate(0.0,368.4,194.0)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
@@ -475,12 +464,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0055cc" />
     </marker>
   </defs>
-  <line x1="0.0" y1="1070.0" x2="340.0" y2="1070.0"
+  <line x1="-1.9" y1="1140.1" x2="338.1" y2="1140.1"
         stroke="#0055cc" stroke-width="1.5"
         marker-start="url(#arrowhead_north_garage_face)"
         marker-end="url(#arrowhead_north_garage_face)" />
-  <text x="170.0" y="1070.0"
-        transform="rotate(0.0,170.0,1070.0)"
+  <text x="168.1" y="1140.1"
+        transform="rotate(0.0,168.1,1140.1)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
@@ -495,12 +484,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0055cc" />
     </marker>
   </defs>
-  <line x1="470.0" y1="1025.0" x2="714.0" y2="1025.0"
+  <line x1="473.8" y1="1079.9" x2="717.8" y2="1079.9"
         stroke="#0055cc" stroke-width="1.5"
         marker-start="url(#arrowhead_north_master_face)"
         marker-end="url(#arrowhead_north_master_face)" />
-  <text x="592.0" y="1025.0"
-        transform="rotate(0.0,592.0,1025.0)"
+  <text x="595.8" y="1079.9"
+        transform="rotate(0.0,595.8,1079.9)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
@@ -515,12 +504,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0055cc" />
     </marker>
   </defs>
-  <line x1="-28.0" y1="300.0" x2="-28.0" y2="1040.0"
+  <line x1="-41.3" y1="275.37" x2="-40.4" y2="1037.37"
         stroke="#0055cc" stroke-width="1.5"
         marker-start="url(#arrowhead_east_wall_total)"
         marker-end="url(#arrowhead_east_wall_total)" />
-  <text x="-28.0" y="670.0"
-        transform="rotate(90.0,-28.0,670.0)"
+  <text x="-40.85" y="656.37"
+        transform="rotate(89.9,-40.85,656.37)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
@@ -535,12 +524,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0055cc" />
     </marker>
   </defs>
-  <line x1="718.0" y1="300.0" x2="718.0" y2="1010.0"
+  <line x1="757.6" y1="265.09" x2="757.4" y2="990.79"
         stroke="#0055cc" stroke-width="1.5"
         marker-start="url(#arrowhead_west_wall_total)"
         marker-end="url(#arrowhead_west_wall_total)" />
-  <text x="718.0" y="655.0"
-        transform="rotate(90.0,718.0,655.0)"
+  <text x="757.5" y="627.94"
+        transform="rotate(270.0,757.5,627.94)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
@@ -555,12 +544,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0077B6" />
     </marker>
   </defs>
-  <line x1="350.0" y1="930.0" x2="450.0" y2="930.0"
+  <line x1="346.2" y1="903.4" x2="446.2" y2="903.4"
         stroke="#0077B6" stroke-width="1.5"
         marker-start="url(#arrowhead_entryway_back_wall)"
         marker-end="url(#arrowhead_entryway_back_wall)" />
-  <text x="400.0" y="930.0"
-        transform="rotate(0.0,400.0,930.0)"
+  <text x="396.2" y="903.4"
+        transform="rotate(0.0,396.2,903.4)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
@@ -575,12 +564,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0077B6" />
     </marker>
   </defs>
-  <line x1="340.0" y1="925.0" x2="340.0" y2="1050.0"
+  <line x1="281.4" y1="904.8" x2="281.4" y2="1029.6"
         stroke="#0077B6" stroke-width="1.5"
         marker-start="url(#arrowhead_entryway_left_wall)"
         marker-end="url(#arrowhead_entryway_left_wall)" />
-  <text x="340.0" y="987.5"
-        transform="rotate(90.0,340.0,987.5)"
+  <text x="281.4" y="967.2"
+        transform="rotate(90.0,281.4,967.2)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"
@@ -595,12 +584,12 @@
       <polygon points="0 0, 6 2, 0 4" fill="#0077B6" />
     </marker>
   </defs>
-  <line x1="455.0" y1="925.0" x2="455.0" y2="1000.0"
+  <line x1="508.1" y1="911.7" x2="508.1" y2="986.7"
         stroke="#0077B6" stroke-width="1.5"
         marker-start="url(#arrowhead_entryway_right_wall)"
         marker-end="url(#arrowhead_entryway_right_wall)" />
-  <text x="455.0" y="962.5"
-        transform="rotate(90.0,455.0,962.5)"
+  <text x="508.1" y="949.2"
+        transform="rotate(90.0,508.1,949.2)"
         text-anchor="middle"
         dominant-baseline="text-after-edge"
         font-family="Arial,Helvetica,sans-serif"

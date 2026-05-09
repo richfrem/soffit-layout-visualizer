@@ -340,8 +340,7 @@
                 <div class="control-group">
                     <label>Vent Type</label>
                     <div class="btn-toggle-group" id="vent-type">
-                        <button class="btn-toggle active" data-val="plastic">Plastic (1.75")</button>
-                        <button class="btn-toggle" data-val="metal">Metal (2.00")</button>
+                        <button class="btn-toggle active" data-val="ventStrip">Continuous Vent (2.5")</button>
                     </div>
                 </div>
 
@@ -424,34 +423,46 @@
     </div>
 
     <script>
+        /**
+         * index.html
+         * ================
+         *
+         * Purpose:
+         *   Web-based interactive visualizer for soffit layout planning. 
+         *   Provides a modern UI for material estimation and layout preview.
+         *
+         * Key Functions:
+         *   - update() - Recalculates the layout and triggers rendering/calculation.
+         *   - render() - Injects DOM elements for the visual preview tray.
+         *   - calculate() - Performs material math and updates the results table.
+         */
+
         // State
+        /** @type {Object} Application state holding user selections and measurements. */
         const state = {
-            depth: 23,
             boardType: '1x4',
-            ventType: 'plastic',
+            ventType: 'ventStrip',
             mode: 'auto',
             ventPos: 'center',
             manualLayout: [],
             prices: {
-                '1x4': 3.25, // Linear foot
-                '1x5': 5.17,
-                '1x6': 8.17,
-                'ventPlastic': 1.24,
-                'ventMetal': 3.45
+                '1x4': 11.88, // Square foot (synced with Python)
+                '1x5': 11.88,
+                '1x6': 11.88,
+                'ventStrip': 8.55
             },
             runLen: 238,
             waste: 1.1 // 10%
         };
 
         const boards = {
-            '1x4': 3.25,
+            '1x4': 3.375,
             '1x5': 4.25,
             '1x6': 5.25
         };
 
         const vents = {
-            'plastic': 1.75,
-            'metal': 2.0
+            'ventStrip': 2.5
         };
 
         // DOM Elements
@@ -464,6 +475,10 @@
         const bigWoodSqftEl = document.getElementById('total-wood-sqft');
 
         // Logic
+        /**
+         * Core update loop. Generates the layout based on current state,
+         * then triggers rendering and calculation.
+         */
         function update() {
             let layout = [];
             const woodW = boards[state.boardType];
@@ -513,6 +528,10 @@
             calculate(layout);
         }
 
+        /**
+         * Renders the layout segments into the DOM tray.
+         * @param {Array<Object>} layout - Array of course objects {w, type}.
+         */
         function render(layout) {
             tray.innerHTML = '';
             const totalW = layout.reduce((acc, c) => acc + c.w, 0);
@@ -544,6 +563,10 @@
             bigTotalWidthEl.style.color = Math.abs(totalW - state.depth) < 0.1 ? 'var(--accent-green)' : 'var(--accent-gold)';
         }
 
+        /**
+         * Calculates material totals, square footage, and costs.
+         * @param {Array<Object>} layout - The current layout configuration.
+         */
         function calculate(layout) {
             const items = {};
             layout.forEach(c => {
@@ -564,7 +587,7 @@
                 const sqft = (linFt * (data.w / 12)).toFixed(1);
                 if (key.startsWith('1x')) woodSqft += parseFloat(sqft);
 
-                const priceKey = key === 'plastic' ? 'ventPlastic' : (key === 'metal' ? 'ventMetal' : key);
+                const priceKey = (key === 'ventStrip' || key === 'plastic' || key === 'metal') ? 'ventStrip' : key;
                 const cost = linFt * state.prices[priceKey];
                 subtotal += cost;
 
@@ -578,7 +601,7 @@
             }
 
             const grand = subtotal * state.waste;
-            grandTotalEl.textContent = `$${grand.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            grandTotalEl.textContent = `$${grand.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             bigWoodSqftEl.textContent = `${Math.round(woodSqft)} `;
         }
 
@@ -592,6 +615,7 @@
         numInput.onchange = (e) => {
             state.depth = parseFloat(e.target.value);
             slider.value = state.depth;
+            numInput.value = state.depth.toFixed(2);
             update();
         };
 
