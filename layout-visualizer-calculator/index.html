@@ -331,16 +331,14 @@
                 <div class="control-group">
                     <label>Board Type</label>
                     <div class="btn-toggle-group" id="board-type">
-                        <button class="btn-toggle active" data-val="1x4">1x4 (3.25")</button>
-                        <button class="btn-toggle" data-val="1x5">1x5 (4.25")</button>
-                        <button class="btn-toggle" data-val="1x6">1x6 (5.25")</button>
+                        <button class="btn-toggle active" data-val="1x4">3 3/8" (CVG Fir)</button>
                     </div>
                 </div>
 
                 <div class="control-group">
                     <label>Vent Type</label>
                     <div class="btn-toggle-group" id="vent-type">
-                        <button class="btn-toggle active" data-val="ventStrip">Continuous Vent (2.5")</button>
+                        <button class="btn-toggle active" data-val="ventStrip">Continuous Vent (2 1/2")</button>
                     </div>
                 </div>
 
@@ -358,11 +356,30 @@
                         <label>Vent Position</label>
                         <select id="vent-pos" style="width: 100%;">
                             <option value="center">Centered</option>
-                            <option value="outer">Outer Edge (Gutter)</option>
-                            <option value="inner">1 Board Deep (Stucco-side)</option>
-                            <option value="1board-gutter">1 Board Deep (Gutter-side)</option>
+                            <option value="inner">1 Board Deep (Wall-side)</option>
+                            <option value="outer">Gutter-side</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="section-title">📦 Inventory Planning</div>
+                <div class="control-group">
+                    <label>Main House 23" Run (LF)</label>
+                    <input type="number" id="lf-23" value="238" style="width: 100%; margin-bottom: 0.5rem;">
+                    <label>Entrance 24" Run (LF)</label>
+                    <input type="number" id="lf-24" value="0" style="width: 100%; margin-bottom: 0.5rem;">
+                </div>
+                <div class="control-group">
+                    <label>Stock: 12' | 11' | 6'</label>
+                    <div class="input-row">
+                        <input type="number" id="pcs-12" value="103" style="width: 30%;">
+                        <input type="number" id="pcs-11" value="55" style="width: 30%;">
+                        <input type="number" id="pcs-6" value="2" style="width: 30%;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Waste %</label>
+                    <input type="number" id="waste-pct" value="10" style="width: 100%;">
                 </div>
 
                 <div id="manual-controls" class="hidden">
@@ -389,14 +406,14 @@
 
                 <div class="results-grid">
                     <div class="card">
-                        <div class="section-title">📋 Material Breakdown</div>
+                        <div class="section-title">📋 Whole-Job Estimator</div>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Item</th>
-                                    <th>Lin Ft</th>
-                                    <th>Sq Ft</th>
-                                    <th>Estimate</th>
+                                    <th>Metric</th>
+                                    <th>Planned</th>
+                                    <th>Inventory</th>
+                                    <th>Surplus</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body">
@@ -404,8 +421,8 @@
                             </tbody>
                             <tfoot>
                                 <tr class="total-row">
-                                    <td colspan="3">Grand Total (incl. 10% waste)</td>
-                                    <td id="grand-total">$0.00</td>
+                                    <td colspan="2">Enough Coverage?</td>
+                                    <td id="grand-total" colspan="2" style="text-align: right;">YES</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -445,20 +462,17 @@
             mode: 'auto',
             ventPos: 'center',
             manualLayout: [],
-            prices: {
-                '1x4': 11.88, // Square foot (synced with Python)
-                '1x5': 11.88,
-                '1x6': 11.88,
-                'ventStrip': 8.55
-            },
-            runLen: 238,
-            waste: 1.1 // 10%
+            lf23: 238,
+            lf24: 0,
+            pcs12: 103,
+            pcs11: 55,
+            pcs6: 2,
+            wastePct: 10,
+            depth: 23
         };
 
         const boards = {
-            '1x4': 3.375,
-            '1x5': 4.25,
-            '1x6': 5.25
+            '1x4': 3.375
         };
 
         const vents = {
@@ -568,41 +582,51 @@
          * @param {Array<Object>} layout - The current layout configuration.
          */
         function calculate(layout) {
-            const items = {};
-            layout.forEach(c => {
-                const key = c.type === 'wood' ? state.boardType : (c.type === 'vent' ? state.ventType : 'Rip');
-                if (!items[key]) items[key] = { w: 0, count: 0 };
-                items[key].w += c.w;
-                items[key].count++;
-            });
+            // Whole-job Area
+            const plannedArea = (state.lf23 * 23 + state.lf24 * 24) / 12;
+            
+            // Inventory
+            const totalStockLF = (state.pcs12 * 12) + (state.pcs11 * 11) + (state.pcs6 * 6);
+            const grossSqft = (totalStockLF * boards['1x4']) / 12;
+            const usableSqft = grossSqft * (1 - state.wastePct / 100);
+            const surplus = usableSqft - plannedArea;
 
-            let subtotal = 0;
-            let woodSqft = 0;
-            tableBody.innerHTML = '';
+            tableBody.innerHTML = `
+                <tr>
+                    <td>Linear Run</td>
+                    <td>${(state.lf23 + state.lf24).toFixed(0)} LF</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Planned Area</td>
+                    <td>${plannedArea.toFixed(1)} SF</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Inventory Area</td>
+                    <td>-</td>
+                    <td>${grossSqft.toFixed(1)} SF</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Usable (-${state.wastePct}%)</td>
+                    <td>-</td>
+                    <td>${usableSqft.toFixed(1)} SF</td>
+                    <td>-</td>
+                </tr>
+                <tr style="border-top: 2px solid var(--accent-gold);">
+                    <td><b>SURPLUS</b></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td style="color: ${surplus >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}"><b>${surplus.toFixed(1)} SF</b></td>
+                </tr>
+            `;
 
-            for (const [key, data] of Object.entries(items)) {
-                if (key === 'Rip') continue;
-                
-                const linFt = state.runLen;
-                const sqft = (linFt * (data.w / 12)).toFixed(1);
-                if (key.startsWith('1x')) woodSqft += parseFloat(sqft);
-
-                const priceKey = (key === 'ventStrip' || key === 'plastic' || key === 'metal') ? 'ventStrip' : key;
-                const cost = linFt * state.prices[priceKey];
-                subtotal += cost;
-
-                const row = `<tr>
-                    <td>${key === 'plastic' || key === 'metal' ? 'Continuous Vent' : key + ' CVG Fir'}</td>
-                    <td>${linFt} ft</td>
-                    <td>${sqft}</td>
-                    <td>$${cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                </tr>`;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            }
-
-            const grand = subtotal * state.waste;
-            grandTotalEl.textContent = `$${grand.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            bigWoodSqftEl.textContent = `${Math.round(woodSqft)} `;
+            grandTotalEl.textContent = surplus >= 0 ? "YES" : "NO (SHORTAGE)";
+            grandTotalEl.style.color = surplus >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+            bigWoodSqftEl.textContent = `${Math.round(plannedArea)}`;
         }
 
         // Handlers
@@ -647,6 +671,13 @@
                 update();
             };
         });
+
+        document.getElementById('lf-23').oninput = (e) => { state.lf23 = parseFloat(e.target.value) || 0; update(); };
+        document.getElementById('lf-24').oninput = (e) => { state.lf24 = parseFloat(e.target.value) || 0; update(); };
+        document.getElementById('pcs-12').oninput = (e) => { state.pcs12 = parseInt(e.target.value) || 0; update(); };
+        document.getElementById('pcs-11').oninput = (e) => { state.pcs11 = parseInt(e.target.value) || 0; update(); };
+        document.getElementById('pcs-6').oninput = (e) => { state.pcs6 = parseInt(e.target.value) || 0; update(); };
+        document.getElementById('waste-pct').oninput = (e) => { state.wastePct = parseFloat(e.target.value) || 0; update(); };
 
         document.getElementById('vent-pos').onchange = (e) => {
             state.ventPos = e.target.value;

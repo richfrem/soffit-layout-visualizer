@@ -15,7 +15,7 @@ Key project assumptions built in:
 - Waste allowance:   10%
 
 Run:
-    python app.py
+    python soffit-layout-visualizer.py
 """
 
 from __future__ import annotations

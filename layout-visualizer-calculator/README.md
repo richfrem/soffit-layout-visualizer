@@ -6,7 +6,7 @@ An interactive engineering tool for planning wood soffit board and vent-strip la
 Open your Terminal and run the following command from this directory:
 
 ```bash
-python3 app.py
+python3 soffit-layout-visualizer.py
 ```
 
 ## ⚙️ Key Features
