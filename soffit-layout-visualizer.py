@@ -16,15 +16,10 @@ Built-in project assumptions:
 - Wood order:        103 @ 12', 55 @ 11', 2 @ 6' = 1853 LF
 - Waste allowance:   10%
 
-Defaults updated:
-- Auto layout defaults to balanced rips on both sides.
-- Manual/default full wood count is 5.
-- With 24" depth, 3 3/8" wood, 2 3/8" vent, and both-side balanced rips,
-  Auto selects 5 full wood courses and two 2 3/8" rips.
-
 Run:
-    python3 soffit-layout-visualizer.py
+    python soffit-layout-visualizer.py
 """
+
 from __future__ import annotations
 
 import math
@@ -47,6 +42,7 @@ DEFAULT_MIN_RIP_IN = 1.0
 DEFAULT_TOLERANCE_IN = 0.125
 DEFAULT_MANUAL_WOOD_COUNT = 5
 DEFAULT_RIP_PLACEMENT = "Both sides balanced"
+DEFAULT_VENT_POSITION = 5
 
 
 @dataclass(frozen=True)
@@ -185,28 +181,48 @@ def build_sequence(wood_count: int, vent_count: int, vent_position: int) -> Tupl
 def auto_wood_count(depth: float, wood_reveal: float, vent_reveal: float, vent_count: int,
                     rip_placement: str, min_rip: float, tolerance: float) -> int:
     """
-    Choose the largest full-board count that leaves either no rip or a rip width
-    meeting the configured minimum. For balanced rips, the leftover is divided
-    by two before checking the minimum rip.
+    Choose a physically valid full-board count.
 
-    With the default 24" / 3 3/8" / 2 3/8" / one vent / both-sides-balanced,
-    this intentionally returns 5 full boards because 6 boards would leave only
-    11/16" per side, below the 1" minimum rip.
+    Hard rules:
+    - A rip is cut from the same source board as the full wood reveal.
+    - A rip can be narrower than the source board reveal.
+    - A rip cannot be wider than the source board reveal.
+    - A rip must meet the configured minimum rip width.
+
+    With defaults, Auto selects the practical 5-full-board balanced layout.
     """
     max_wood = int(math.floor((depth - vent_count * vent_reveal) / wood_reveal))
     if max_wood < 0:
         raise ValueError("Vent strips alone exceed the soffit depth.")
 
     balanced = rip_placement == "Both sides balanced"
+
     for candidate in range(max_wood, -1, -1):
         fixed = candidate * wood_reveal + vent_count * vent_reveal
         leftover = depth - fixed
         if leftover < -tolerance:
             continue
-        rip_width = leftover / 2.0 if balanced else leftover
-        if leftover <= tolerance or rip_width >= min_rip:
+        if leftover <= tolerance:
             return candidate
-    return max_wood
+
+        rip_width = leftover / 2.0 if balanced else leftover
+
+        # You can rip narrower, but you cannot create a rip wider than the source board.
+        if rip_width > wood_reveal + tolerance:
+            continue
+
+        # Minimum rip is a real constraint, not just a warning.
+        if rip_width < min_rip - tolerance:
+            continue
+
+        return candidate
+
+    placement_hint = "balanced rips" if not balanced else "a lower minimum rip or a different layout"
+    raise ValueError(
+        "No valid automatic layout found. A required rip would either be wider than "
+        f"the source board reveal ({format_inches(wood_reveal)}) or narrower than "
+        f"the minimum rip ({format_inches(min_rip)}). Try {placement_hint}."
+    )
 
 
 def calculate_layout(depth: float, wood_reveal: float, vent_reveal: float, vent_count: int,
@@ -244,8 +260,19 @@ def calculate_layout(depth: float, wood_reveal: float, vent_reveal: float, vent_
     rip_width = leftover / 2.0 if balanced and leftover > 0 else max(0.0, leftover)
     rip_count = 2 if balanced and rip_width > tolerance else (1 if rip_width > tolerance else 0)
 
-    if rip_count and rip_width < min_rip:
-        warnings.append(f"Rip width {format_inches(rip_width)} is below preferred minimum {format_inches(min_rip)}.")
+    if rip_count and rip_width > wood_reveal + tolerance:
+        raise ValueError(
+            f"Rip width {format_inches(rip_width)} is wider than the source board reveal "
+            f"{format_inches(wood_reveal)}. You can rip wood narrower, not wider. "
+            "Increase the full wood count or use balanced rips."
+        )
+
+    if rip_count and rip_width < min_rip - tolerance:
+        raise ValueError(
+            f"Rip width {format_inches(rip_width)} is below the minimum rip "
+            f"{format_inches(min_rip)}. Increase/decrease the full wood count, "
+            "use balanced rips, or lower the minimum rip if you intentionally accept a sliver."
+        )
 
     sequence, actual_pos, max_pos = build_sequence(wood_count, vent_count, vent_position)
     courses: List[Course] = []
@@ -307,7 +334,13 @@ def wood_courses_per_run(layout: Layout) -> int:
 
 
 def allocate_pieces_no_waste(required_lf: float, pcs_12: int, pcs_11: int, pcs_6: int) -> PieceAllocation:
-    """Simple no-waste allocation by lineal footage, using 12' then 11' then 6'."""
+    """
+    Simple no-waste starting allocation.
+
+    Allocates inventory by total LF, using 12' pieces first, then 11', then 6'.
+    This is not cut-list nesting. It does not account for staggered joints,
+    mitres, defects, unusable short offcuts, or sequencing.
+    """
     remaining = max(0.0, required_lf)
 
     used_12 = min(pcs_12, int(remaining // 12.0))
@@ -367,7 +400,7 @@ class SoffitVisualizer:
         self.vent_count_var = tk.IntVar(value=1)
         self.mode_var = tk.StringVar(value="Auto")
         self.manual_wood_count_var = tk.StringVar(value=str(DEFAULT_MANUAL_WOOD_COUNT))
-        self.vent_position_var = tk.IntVar(value=DEFAULT_MANUAL_WOOD_COUNT)
+        self.vent_position_var = tk.IntVar(value=DEFAULT_VENT_POSITION)
         self.rip_placement_var = tk.StringVar(value=DEFAULT_RIP_PLACEMENT)
         self.min_rip_var = tk.StringVar(value="1")
         self.tolerance_var = tk.StringVar(value="1/8")
@@ -419,10 +452,15 @@ class SoffitVisualizer:
     def _build_ui(self) -> None:
         outer = ttk.Frame(self.root, padding=14)
         outer.pack(fill=tk.BOTH, expand=True)
+
         header = ttk.Frame(outer)
         header.pack(fill=tk.X, pady=(0, 10))
         ttk.Label(header, text="Soffit Layout Visualizer", style="Header.TLabel").pack(anchor="w")
-        ttk.Label(header, text="Dynamic material cards update as layout, 23\" LF, 24\" LF, and inventory assumptions change.", style="Subtle.TLabel").pack(anchor="w")
+        ttk.Label(
+            header,
+            text="Dynamic material cards update as layout, 23\" LF, 24\" LF, and inventory assumptions change.",
+            style="Subtle.TLabel",
+        ).pack(anchor="w")
 
         main = ttk.Frame(outer)
         main.pack(fill=tk.BOTH, expand=True)
@@ -430,6 +468,7 @@ class SoffitVisualizer:
         controls.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 12))
         right = ttk.Frame(main)
         right.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
         self._build_controls(controls)
         self._build_visual_area(right)
 
@@ -462,10 +501,26 @@ class SoffitVisualizer:
         mode.grid(row=r, column=1, sticky="ew", pady=4, padx=(8, 0))
         mode.bind("<<ComboboxSelected>>", lambda _event: self.update_calculations()); r += 1
 
-        self.manual_entry = self._add_entry(parent, "Manual wood count", self.manual_wood_count_var, r); r += 1
+        ttk.Label(parent, text="Full wood pieces", style="Panel.TLabel").grid(row=r, column=0, sticky="w", pady=4)
+        self.manual_entry = ttk.Combobox(
+            parent,
+            textvariable=self.manual_wood_count_var,
+            values=["5", "6"],
+            state="readonly",
+            width=12,
+        )
+        self.manual_entry.grid(row=r, column=1, sticky="ew", pady=4, padx=(8, 0))
+        self.manual_entry.bind("<<ComboboxSelected>>", lambda _event: self.update_calculations())
+        r += 1
 
         ttk.Label(parent, text="Rip placement", style="Panel.TLabel").grid(row=r, column=0, sticky="w", pady=4)
-        rip = ttk.Combobox(parent, textvariable=self.rip_placement_var, values=["Both sides balanced", "One side - wall/left", "One side - fascia/right"], state="readonly", width=22)
+        rip = ttk.Combobox(
+            parent,
+            textvariable=self.rip_placement_var,
+            values=["Both sides balanced", "One side - wall/left", "One side - fascia/right"],
+            state="readonly",
+            width=22,
+        )
         rip.grid(row=r, column=1, sticky="ew", pady=4, padx=(8, 0))
         rip.bind("<<ComboboxSelected>>", lambda _event: self.update_calculations()); r += 1
 
@@ -484,7 +539,7 @@ class SoffitVisualizer:
         self.btn_right = ttk.Button(move, text="Vent right →", command=lambda: self.move_vent(1))
         self.btn_right.grid(row=0, column=2, sticky="ew", padx=(4, 0)); r += 1
 
-        self._add_entry(parent, "Preferred min rip", self.min_rip_var, r); r += 1
+        self._add_entry(parent, "Minimum rip", self.min_rip_var, r); r += 1
         self._add_entry(parent, "Tolerance", self.tolerance_var, r); r += 1
 
         ttk.Separator(parent).grid(row=r, column=0, columnspan=2, sticky="ew", pady=12); r += 1
@@ -495,10 +550,17 @@ class SoffitVisualizer:
         self._add_entry(parent, "11 ft pieces", self.pcs_11_var, r); r += 1
         self._add_entry(parent, "6 ft pieces", self.pcs_6_var, r); r += 1
         self._add_entry(parent, "Waste %", self.waste_percent_var, r); r += 1
+
         ttk.Button(parent, text="Recalculate", command=self.update_calculations).grid(row=r, column=0, columnspan=2, sticky="ew", pady=(12, 4)); r += 1
         ttk.Button(parent, text="Run Math Check", command=self.run_math_check).grid(row=r, column=0, columnspan=2, sticky="ew", pady=4); r += 1
         ttk.Button(parent, text="Copy Summary", command=self.copy_summary).grid(row=r, column=0, columnspan=2, sticky="ew", pady=4); r += 1
-        ttk.Label(parent, text="Defaults now use Auto + 5 full wood courses where balanced rips meet the minimum. Rip placement defaults to both sides balanced.", style="PanelSubtle.TLabel", wraplength=310).grid(row=r, column=0, columnspan=2, sticky="w", pady=(12, 0))
+
+        ttk.Label(
+            parent,
+            text="Defaults use Auto, 5 full wood pieces, balanced rips, and the vent at the right-side position shown in the visualizer. Full wood choices are limited to 5 or 6.",
+            style="PanelSubtle.TLabel",
+            wraplength=310,
+        ).grid(row=r, column=0, columnspan=2, sticky="w", pady=(12, 0))
 
     def _build_visual_area(self, parent: ttk.Frame) -> None:
         canvas_frame = ttk.Frame(parent, style="Panel.TFrame", padding=8)
@@ -506,16 +568,20 @@ class SoffitVisualizer:
         self.canvas = tk.Canvas(canvas_frame, bg="#15151b", highlightthickness=0, height=330)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.canvas.bind("<Configure>", lambda _event: self.draw_layout())
+
         self.metrics_frame = ttk.Frame(parent, style="Panel.TFrame", padding=8)
         self.metrics_frame.pack(fill=tk.X, pady=(12, 0))
         self._build_metric_cards(self.metrics_frame)
+
         bottom = ttk.Frame(parent)
         bottom.pack(fill=tk.BOTH, expand=True, pady=(12, 0))
+
         summary_frame = ttk.Frame(bottom, style="Panel.TFrame", padding=8)
         summary_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 8))
         ttk.Label(summary_frame, text="Summary", style="Panel.TLabel", font=("Segoe UI", 11, "bold")).pack(anchor="w")
         self.summary_text = tk.Text(summary_frame, height=14, wrap=tk.WORD, bg="#101016", fg="#f2f2f2", insertbackground="#ffffff", relief=tk.FLAT, font=("Consolas", 10))
         self.summary_text.pack(fill=tk.BOTH, expand=True, pady=(6, 0))
+
         calc_frame = ttk.Frame(bottom, style="Panel.TFrame", padding=8)
         calc_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
         ttk.Label(calc_frame, text="Calculation Block", style="Panel.TLabel", font=("Segoe UI", 11, "bold")).pack(anchor="w")
@@ -523,7 +589,12 @@ class SoffitVisualizer:
         self.calc_text.pack(fill=tk.BOTH, expand=True, pady=(6, 0))
 
     def _build_metric_cards(self, parent: ttk.Frame) -> None:
-        cards = [("Wood Required", self.metric_vars["required"], "no waste, based on 23/24 split"), ("Pieces Used", self.metric_vars["used"], "estimated full pieces consumed"), ("Pieces Left", self.metric_vars["left"], "estimated full pieces remaining"), ("Unused / Offcut", self.metric_vars["unused"], "full-piece LF left + rounding")]
+        cards = [
+            ("Wood Required", self.metric_vars["required"], "no waste, based on 23/24 split"),
+            ("Pieces Used", self.metric_vars["used"], "estimated full pieces consumed"),
+            ("Pieces Left", self.metric_vars["left"], "estimated full pieces remaining"),
+            ("Unused / Offcut", self.metric_vars["unused"], "full-piece LF left + rounding"),
+        ]
         for idx, (title, var, subtitle) in enumerate(cards):
             card = ttk.Frame(parent, style="Card.TFrame", padding=10)
             card.grid(row=0, column=idx, sticky="ew", padx=(0 if idx == 0 else 8, 0))
@@ -546,13 +617,21 @@ class SoffitVisualizer:
         pcs_11 = parse_int(self.pcs_11_var.get(), "11 ft pieces")
         pcs_6 = parse_int(self.pcs_6_var.get(), "6 ft pieces")
         waste = parse_float(self.waste_percent_var.get(), "Waste percent")
+
         if lf_23 < 0 or lf_24 < 0:
             raise ValueError("23 in and 24 in linear feet cannot be negative.")
         if pcs_12 < 0 or pcs_11 < 0 or pcs_6 < 0:
             raise ValueError("Piece counts cannot be negative.")
         if waste < 0 or waste >= 100:
             raise ValueError("Waste percent must be between 0 and 99.")
+
         return depth, wood, vent, vent_count, manual_wood, min_rip, tolerance, lf_23, lf_24, pcs_12, pcs_11, pcs_6, waste
+
+    def layout_for_depth(self, depth: float) -> Layout:
+        _sample, wood, vent, vent_count, manual_wood, min_rip, tolerance, *_ = self.read_inputs()
+        return calculate_layout(depth, wood, vent, vent_count, self.mode_var.get(), manual_wood,
+                                self.vent_position_var.get(), self.rip_placement_var.get(),
+                                min_rip, tolerance)
 
     def update_calculations(self) -> None:
         try:
@@ -564,6 +643,7 @@ class SoffitVisualizer:
             required_lf = combined_required_wood_lf(layout_23, lf_23, layout_24, lf_24)
             allocation = allocate_pieces_no_waste(required_lf, pcs_12, pcs_11, pcs_6)
             math_check = verify_layout_math(sample_layout, tolerance)
+
             self.last_layout = sample_layout
             self.last_layout_23 = layout_23
             self.last_layout_24 = layout_24
@@ -577,8 +657,12 @@ class SoffitVisualizer:
             self.write_summary(sample_layout, layout_23, layout_24, inventory, allocation, lf_23, lf_24, waste, math_check)
             self.write_calculation_block(sample_layout, layout_23, layout_24, inventory, allocation, lf_23, lf_24, waste, math_check)
         except Exception as exc:
-            self.last_layout = self.last_layout_23 = self.last_layout_24 = None
-            self.last_inventory = self.last_allocation = self.last_math_check = None
+            self.last_layout = None
+            self.last_layout_23 = None
+            self.last_layout_24 = None
+            self.last_inventory = None
+            self.last_allocation = None
+            self.last_math_check = None
             for var in self.metric_vars.values():
                 var.set("—")
             if hasattr(self, "canvas"):
@@ -599,7 +683,7 @@ class SoffitVisualizer:
 
     def update_control_states(self) -> None:
         auto = self.mode_var.get() == "Auto"
-        self.manual_entry.configure(state="disabled" if auto else "normal")
+        self.manual_entry.configure(state="disabled" if auto else "readonly")
         if self.last_layout:
             mode_label = "auto wood count" if auto else "manual wood count"
             self.vent_position_label.configure(text=f"{self.last_layout.vent_position} wood before vent / max {self.last_layout.max_vent_position} ({mode_label})")
@@ -627,11 +711,18 @@ class SoffitVisualizer:
             messagebox.showerror("Math Check", "No valid layout to check.")
             return
         _depth, _wood, _vent, _vc, _mw, _min_rip, tolerance, *_ = self.read_inputs()
-        checks = [verify_layout_math(self.last_layout, tolerance), verify_layout_math(self.last_layout_23, tolerance), verify_layout_math(self.last_layout_24, tolerance)]
+        checks = [
+            verify_layout_math(self.last_layout, tolerance),
+            verify_layout_math(self.last_layout_23, tolerance),
+            verify_layout_math(self.last_layout_24, tolerance),
+        ]
         passed = all(c.passed for c in checks)
         msg = "PASS: sample, 23\", and 24\" layout arithmetic balances." if passed else "FAIL: at least one layout arithmetic check failed."
         messagebox.showinfo("Math Check", msg + "\n\nDetails are shown in the Calculation Block.")
 
+    # ------------------------------------------------------------------
+    # Drawing
+    # ------------------------------------------------------------------
     def draw_layout(self) -> None:
         self.canvas.delete("all")
         layout = self.last_layout
@@ -654,18 +745,23 @@ class SoffitVisualizer:
         soffit_x1 = fascia_x0 - gap
         usable = max(220, soffit_x1 - soffit_x0)
         scale = usable / layout.depth
+
         self.canvas.create_text(soffit_x0, 18, anchor="nw", fill="#ffffff", font=("Segoe UI", 13, "bold"), text=f"Sample depth: {format_inches(layout.depth)}  |  Total used: {format_inches(layout.total_used)}")
+
         self.canvas.create_rectangle(wall_x0, y0 - 18, wall_x1, y1 + 18, fill="#d9c7a8", outline="#f1dfbd", width=2)
         for yy in range(int(y0 - 12), int(y1 + 18), 14):
             self.canvas.create_line(wall_x0 + 4, yy, wall_x1 - 4, yy + 5, fill="#b9a47e", width=1)
         self.canvas.create_text((wall_x0 + wall_x1) / 2, y0 - 36, fill="#e8e0cf", font=("Segoe UI", 9, "bold"), text="House\nstucco\nwall", justify=tk.CENTER)
+
         self.canvas.create_rectangle(fascia_x0, y0 - 18, fascia_x1, y1 + 18, fill="#8b4a22", outline="#c88950", width=2)
         self.canvas.create_rectangle(fascia_x0 - 6, y0 - 30, fascia_x1 + 5, y0 - 14, fill="#4d5961", outline="#83909a", width=1)
         self.canvas.create_text((fascia_x0 + fascia_x1) / 2, y0 - 50, fill="#dfe8ee", font=("Segoe UI", 9, "bold"), text="Gutter /\nfascia\nboard", justify=tk.CENTER)
+
         self.canvas.create_line(soffit_x0, y0 - 20, soffit_x1, y0 - 20, fill="#d7d7df", width=1)
         self.canvas.create_line(soffit_x0, y0 - 26, soffit_x0, y0 - 14, fill="#d7d7df", width=1)
         self.canvas.create_line(soffit_x1, y0 - 26, soffit_x1, y0 - 14, fill="#d7d7df", width=1)
         self.canvas.create_text((soffit_x0 + soffit_x1) / 2, y0 - 36, fill="#d7d7df", font=("Segoe UI", 10), text=format_inches(layout.depth))
+
         colors = {"wood": "#c86f2f", "rip": "#e09a55", "vent": "#121217"}
         outlines = {"wood": "#f3b16e", "rip": "#ffd19a", "vent": "#4b4b56"}
         x = soffit_x0
@@ -686,6 +782,7 @@ class SoffitVisualizer:
             self.canvas.create_text((x + x2) / 2, y1 + 32, fill="#cfcfd8", font=("Segoe UI", 8), text=format_inches(course.width))
             x = x2
         self.canvas.create_line(soffit_x1, y1 + 4, soffit_x1, y1 + 12, fill="#888894")
+
         legend_y = y1 + 66
         self._legend_item(soffit_x0, legend_y, "#c86f2f", "Full wood reveal")
         self._legend_item(soffit_x0 + 170, legend_y, "#e09a55", "Rip-cut wood")
@@ -717,11 +814,24 @@ class SoffitVisualizer:
         self.canvas.create_rectangle(x, y, x + 18, y + 18, fill=color, outline="#d0d0d0")
         self.canvas.create_text(x + 25, y + 9, anchor="w", fill="#e7e7ee", font=("Segoe UI", 9), text=text)
 
+    # ------------------------------------------------------------------
+    # Text outputs
+    # ------------------------------------------------------------------
     def math_check_lines(self, check: MathCheck, label: str) -> List[str]:
         status = "PASS" if check.passed else "FAIL"
-        return [f"{label}: {format_inches(check.depth)} [{status}]", f"  Wood:  {format_inches(check.wood_width_total)}", f"  Vent:  {format_inches(check.vent_width_total)}", f"  Rip:   {format_inches(check.rip_width_total)}", f"  Total: {format_inches(check.total)}", f"  Diff:  {format_inches(check.difference)}", f"  {check.formula}"]
+        return [
+            f"{label}: {format_inches(check.depth)} [{status}]",
+            f"  Wood:  {format_inches(check.wood_width_total)}",
+            f"  Vent:  {format_inches(check.vent_width_total)}",
+            f"  Rip:   {format_inches(check.rip_width_total)}",
+            f"  Total: {format_inches(check.total)}",
+            f"  Diff:  {format_inches(check.difference)}",
+            f"  {check.formula}",
+        ]
 
-    def write_summary(self, sample: Layout, layout_23: Layout, layout_24: Layout, inventory: Inventory, allocation: PieceAllocation, lf_23: float, lf_24: float, waste: float, math_check: MathCheck) -> None:
+    def write_summary(self, sample: Layout, layout_23: Layout, layout_24: Layout,
+                      inventory: Inventory, allocation: PieceAllocation,
+                      lf_23: float, lf_24: float, waste: float, math_check: MathCheck) -> None:
         total_lf = lf_23 + lf_24
         vent_lf = combined_required_vent_lf(layout_23, lf_23, layout_24, lf_24)
         lines: List[str] = []
@@ -776,9 +886,20 @@ class SoffitVisualizer:
 
     def layout_card_lines(self, label: str, layout: Layout, lf: float) -> List[str]:
         wood_courses = wood_courses_per_run(layout)
-        return [label, f"  LF: {lf:.1f}", f"  Wood courses/run: {wood_courses}", f"  Full/rip: {layout.wood_count}/{layout.rip_count}", f"  Rip width: {format_inches(layout.rip_width)}", f"  Wood LF: {wood_courses * lf:.1f}", f"  Vent LF: {layout.vent_count * lf:.1f}"]
+        return [
+            f"{label}",
+            f"  LF: {lf:.1f}",
+            f"  Wood courses/run: {wood_courses}",
+            f"  Full/rip: {layout.wood_count}/{layout.rip_count}",
+            f"  Rip width: {format_inches(layout.rip_width)}",
+            f"  Wood LF: {wood_courses * lf:.1f}",
+            f"  Vent LF: {layout.vent_count * lf:.1f}",
+        ]
 
-    def comparison_lines(self, wood: float, vent: float, vent_count: int, mode: str, manual_wood: int, vent_position: int, min_rip: float, tolerance: float, lf_23: float, lf_24: float, pcs_12: int, pcs_11: int, pcs_6: int) -> List[str]:
+    def comparison_lines(self, wood: float, vent: float, vent_count: int, mode: str,
+                         manual_wood: int, vent_position: int, min_rip: float,
+                         tolerance: float, lf_23: float, lf_24: float,
+                         pcs_12: int, pcs_11: int, pcs_6: int) -> List[str]:
         lines = []
         lines.append("RIP-PLACEMENT COMPARISON, NO WASTE")
         lines.append("-" * 58)
@@ -798,7 +919,10 @@ class SoffitVisualizer:
             lines.append("")
         return lines
 
-    def write_calculation_block(self, sample: Layout, layout_23: Layout, layout_24: Layout, inventory: Inventory, allocation: PieceAllocation, lf_23: float, lf_24: float, waste: float, math_check: MathCheck) -> None:
+    def write_calculation_block(self, sample: Layout, layout_23: Layout, layout_24: Layout,
+                                inventory: Inventory, allocation: PieceAllocation,
+                                lf_23: float, lf_24: float, waste: float,
+                                math_check: MathCheck) -> None:
         depth, wood, vent, vent_count, manual_wood, min_rip, tolerance, _lf23, _lf24, pcs_12, pcs_11, pcs_6, _waste = self.read_inputs()
         lines: List[str] = []
         lines.append("DYNAMIC METRICS")
