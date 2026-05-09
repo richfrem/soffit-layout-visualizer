@@ -1,9 +1,31 @@
 # Soffit Layout Visualizer & Inventory Calculator
 
+![Soffit Layout Visualizer Preview](screenshot/image.png)
+
 An interactive engineering tool for planning wood soffit board and vent-strip layouts using real-world reveal widths and inventory management.
 
-## 🚀 How to Run
-Open your Terminal and run the following command from this directory:
+## 🚀 Setup & Installation
+
+### 1. Install Python
+Download and install Python (which includes `pip`) from the official website:
+*   [python.org/downloads](https://www.python.org/downloads/) (Recommended: Python 3.8 or higher)
+
+### 2. Install Dependencies
+This app uses a `requirements.in` workflow to manage its environment. To set up the dependencies:
+
+```bash
+# 1. Install pip-tools (if not already installed)
+pip install pip-tools
+
+# 2. Compile the requirements
+pip-compile requirements.in
+
+# 3. Install the locked dependencies
+pip install -r requirements.txt
+```
+
+## 🏃 How to Run
+Once installed, launch the app from this directory:
 
 ```bash
 python3 soffit-layout-visualizer.py
@@ -30,3 +52,6 @@ python3 soffit-layout-visualizer.py
 
 ---
 Designed for high-precision architectural soffit installations.
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. Free to use and copy with attribution.

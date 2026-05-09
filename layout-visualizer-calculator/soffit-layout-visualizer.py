@@ -3,14 +3,16 @@
 Soffit Layout Visualizer - Actual Reveal Calculator
 
 Tkinter desktop app for planning soffit board / vent-strip layouts using real
-installed reveal widths.
+installed reveal widths and whole-job material inventory.
 
-Key project assumptions built in:
+Built-in project assumptions:
 - Wood reveal:       3 3/8"
-- Vent reveal:       2 1/2"
+- Vent reveal:       2 3/8"
 - Main house depth:  23"
 - Entrance depth:    24"
 - Total soffit run:  238 LF
+- Entrance run:      assumed 30 LF, rounded up from 27'9"
+- Main-house run:    208 LF
 - Wood order:        103 @ 12', 55 @ 11', 2 @ 6' = 1853 LF
 - Waste allowance:   10%
 
@@ -24,13 +26,14 @@ import math
 import tkinter as tk
 from dataclasses import dataclass
 from tkinter import ttk, messagebox
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 
 DEFAULT_WOOD_REVEAL_IN = 3.375
-DEFAULT_VENT_REVEAL_IN = 2.5
-DEFAULT_MAIN_23_LF = 238.0
-DEFAULT_ENTRANCE_24_LF = 0.0
+DEFAULT_VENT_REVEAL_IN = 2.375
+DEFAULT_TOTAL_LF = 238.0
+DEFAULT_ENTRANCE_24_LF = 30.0
+DEFAULT_MAIN_23_LF = DEFAULT_TOTAL_LF - DEFAULT_ENTRANCE_24_LF
 DEFAULT_PCS_12FT = 103
 DEFAULT_PCS_11FT = 55
 DEFAULT_PCS_6FT = 2
@@ -41,7 +44,7 @@ DEFAULT_TOLERANCE_IN = 0.125
 
 @dataclass(frozen=True)
 class Course:
-    kind: str      # wood, vent, rip
+    kind: str
     width: float
     label: str
 
@@ -102,6 +105,14 @@ class PieceAllocation:
     unused_piece_lf: float
     overage_from_used_pieces_lf: float
     shortage_lf: float
+
+    @property
+    def used_piece_count(self) -> int:
+        return self.used_12 + self.used_11 + self.used_6
+
+    @property
+    def left_piece_count(self) -> int:
+        return self.left_12 + self.left_11 + self.left_6
 
 
 # -----------------------------------------------------------------------------
@@ -164,15 +175,8 @@ def build_sequence(wood_count: int, vent_count: int, vent_position: int) -> Tupl
     return ["wood"] * pos + ["vent"] * vent_count + ["wood"] * (wood_count - pos), pos, max_pos
 
 
-def auto_wood_count(
-    depth: float,
-    wood_reveal: float,
-    vent_reveal: float,
-    vent_count: int,
-    rip_placement: str,
-    min_rip: float,
-    tolerance: float,
-) -> int:
+def auto_wood_count(depth: float, wood_reveal: float, vent_reveal: float, vent_count: int,
+                    rip_placement: str, min_rip: float, tolerance: float) -> int:
     max_wood = int(math.floor((depth - vent_count * vent_reveal) / wood_reveal))
     if max_wood < 0:
         raise ValueError("Vent strips alone exceed the soffit depth.")
@@ -189,18 +193,9 @@ def auto_wood_count(
     return max_wood
 
 
-def calculate_layout(
-    depth: float,
-    wood_reveal: float,
-    vent_reveal: float,
-    vent_count: int,
-    mode: str,
-    manual_wood_count: int,
-    vent_position: int,
-    rip_placement: str,
-    min_rip: float,
-    tolerance: float,
-) -> Layout:
+def calculate_layout(depth: float, wood_reveal: float, vent_reveal: float, vent_count: int,
+                     mode: str, manual_wood_count: int, vent_position: int,
+                     rip_placement: str, min_rip: float, tolerance: float) -> Layout:
     warnings: List[str] = []
     if depth <= 0:
         raise ValueError("Soffit depth must be greater than zero.")
@@ -256,22 +251,9 @@ def calculate_layout(
     if abs(difference) > tolerance:
         warnings.append(f"Calculated layout differs from target by {format_inches(difference)}.")
 
-    return Layout(
-        courses=courses,
-        depth=depth,
-        wood_reveal=wood_reveal,
-        vent_reveal=vent_reveal,
-        vent_count=vent_count,
-        wood_count=wood_count,
-        rip_count=rip_count,
-        rip_width=rip_width,
-        total_used=total_used,
-        difference=difference,
-        vent_position=actual_pos,
-        max_vent_position=max_pos,
-        rip_placement=rip_placement,
-        warnings=warnings,
-    )
+    return Layout(courses, depth, wood_reveal, vent_reveal, vent_count, wood_count,
+                  rip_count, rip_width, total_used, difference, actual_pos, max_pos,
+                  rip_placement, warnings)
 
 
 def verify_layout_math(layout: Layout, tolerance: float) -> MathCheck:
@@ -293,15 +275,8 @@ def verify_layout_math(layout: Layout, tolerance: float) -> MathCheck:
 # -----------------------------------------------------------------------------
 # Whole-job / inventory math
 # -----------------------------------------------------------------------------
-def calculate_inventory(
-    pcs_12: int,
-    pcs_11: int,
-    pcs_6: int,
-    wood_reveal_in: float,
-    lf_23: float,
-    lf_24: float,
-    waste_percent: float,
-) -> Inventory:
+def calculate_inventory(pcs_12: int, pcs_11: int, pcs_6: int, wood_reveal_in: float,
+                        lf_23: float, lf_24: float, waste_percent: float) -> Inventory:
     total_lf = pcs_12 * 12.0 + pcs_11 * 11.0 + pcs_6 * 6.0
     gross = total_lf * wood_reveal_in / 12.0
     usable = gross * (1.0 - waste_percent / 100.0)
@@ -319,12 +294,12 @@ def allocate_pieces_no_waste(required_lf: float, pcs_12: int, pcs_11: int, pcs_6
     """
     Simple no-waste starting allocation.
 
-    This allocates board inventory by total linear feet, using 12' pieces first,
-    then 11', then 6'. It does not optimize actual cut nesting, seams, mitres,
-    defects, or sequencing. The overage_from_used_pieces_lf value is the excess
-    length in the last consumed piece(s) beyond the exact required LF.
+    Allocates inventory by total LF, using 12' pieces first, then 11', then 6'.
+    This is not cut-list nesting. It does not account for staggered joints,
+    mitres, defects, unusable short offcuts, or sequencing.
     """
     remaining = max(0.0, required_lf)
+
     used_12 = min(pcs_12, int(remaining // 12.0))
     remaining -= used_12 * 12.0
     if remaining > 1e-9 and used_12 < pcs_12:
@@ -356,19 +331,8 @@ def allocate_pieces_no_waste(required_lf: float, pcs_12: int, pcs_11: int, pcs_6
     left_11 = pcs_11 - used_11
     left_6 = pcs_6 - used_6
     unused_lf = left_12 * 12.0 + left_11 * 11.0 + left_6 * 6.0
-    return PieceAllocation(
-        required_lf=required_lf,
-        used_12=used_12,
-        used_11=used_11,
-        used_6=used_6,
-        left_12=left_12,
-        left_11=left_11,
-        left_6=left_6,
-        gross_used_lf=gross_used,
-        unused_piece_lf=unused_lf,
-        overage_from_used_pieces_lf=overage,
-        shortage_lf=shortage,
-    )
+    return PieceAllocation(required_lf, used_12, used_11, used_6, left_12, left_11, left_6,
+                           gross_used, unused_lf, overage, shortage)
 
 
 def combined_required_wood_lf(layout_23: Layout, lf_23: float, layout_24: Layout, lf_24: float) -> float:
@@ -383,23 +347,21 @@ class SoffitVisualizer:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("Soffit Layout Visualizer - Actual Reveal Calculator")
-        self.root.geometry("1380x880")
-        self.root.minsize(1160, 740)
+        self.root.geometry("1420x900")
+        self.root.minsize(1180, 760)
         self.root.configure(bg="#1e1e24")
 
-        # Layout inputs
         self.depth_var = tk.StringVar(value="24")
         self.wood_reveal_var = tk.StringVar(value="3 3/8")
-        self.vent_reveal_var = tk.StringVar(value="2 1/2")
+        self.vent_reveal_var = tk.StringVar(value="2 3/8")
         self.vent_count_var = tk.IntVar(value=1)
         self.mode_var = tk.StringVar(value="Auto")
         self.manual_wood_count_var = tk.StringVar(value="6")
         self.vent_position_var = tk.IntVar(value=3)
-        self.rip_placement_var = tk.StringVar(value="Both sides balanced")
+        self.rip_placement_var = tk.StringVar(value="One side - fascia/right")
         self.min_rip_var = tk.StringVar(value="1")
         self.tolerance_var = tk.StringVar(value="1/8")
 
-        # Whole-job inputs
         self.lf_23_var = tk.StringVar(value=str(int(DEFAULT_MAIN_23_LF)))
         self.lf_24_var = tk.StringVar(value=str(int(DEFAULT_ENTRANCE_24_LF)))
         self.pcs_12_var = tk.StringVar(value=str(DEFAULT_PCS_12FT))
@@ -414,6 +376,13 @@ class SoffitVisualizer:
         self.last_allocation: Optional[PieceAllocation] = None
         self.last_math_check: Optional[MathCheck] = None
 
+        self.metric_vars = {
+            "required": tk.StringVar(value="—"),
+            "used": tk.StringVar(value="—"),
+            "left": tk.StringVar(value="—"),
+            "unused": tk.StringVar(value="—"),
+        }
+
         self._build_styles()
         self._build_ui()
         self.update_calculations()
@@ -426,8 +395,12 @@ class SoffitVisualizer:
             pass
         style.configure("TFrame", background="#1e1e24")
         style.configure("Panel.TFrame", background="#292933")
+        style.configure("Card.TFrame", background="#101016", relief="solid", borderwidth=1)
         style.configure("TLabel", background="#1e1e24", foreground="#f2f2f2", font=("Segoe UI", 10))
         style.configure("Panel.TLabel", background="#292933", foreground="#f2f2f2", font=("Segoe UI", 10))
+        style.configure("CardTitle.TLabel", background="#101016", foreground="#bdbdc7", font=("Segoe UI", 9, "bold"))
+        style.configure("CardValue.TLabel", background="#101016", foreground="#ffffff", font=("Segoe UI", 16, "bold"))
+        style.configure("CardSubtle.TLabel", background="#101016", foreground="#bdbdc7", font=("Segoe UI", 8))
         style.configure("Header.TLabel", background="#1e1e24", foreground="#ffffff", font=("Segoe UI", 16, "bold"))
         style.configure("Subtle.TLabel", background="#1e1e24", foreground="#bdbdc7", font=("Segoe UI", 9))
         style.configure("PanelSubtle.TLabel", background="#292933", foreground="#bdbdc7", font=("Segoe UI", 9))
@@ -442,7 +415,7 @@ class SoffitVisualizer:
         ttk.Label(header, text="Soffit Layout Visualizer", style="Header.TLabel").pack(anchor="w")
         ttk.Label(
             header,
-            text="Auto calculates layout. Whole-job estimate separates 23\" main-house LF and 24\" entrance LF, then estimates no-waste pieces used/left.",
+            text="Dynamic material cards update as layout, 23\" LF, 24\" LF, and inventory assumptions change.",
             style="Subtle.TLabel",
         ).pack(anchor="w")
 
@@ -531,7 +504,7 @@ class SoffitVisualizer:
 
         ttk.Label(
             parent,
-            text="For your case: set most LF under 23 in soffit LF, and only the entrance run under 24 in entrance LF. No-waste pieces used is a starting estimate only, not cut optimization.",
+            text="Defaults assume entrance = 30 LF and the remaining 208 LF is 23 in. Metric cards update live as values/layouts change.",
             style="PanelSubtle.TLabel",
             wraplength=310,
         ).grid(row=r, column=0, columnspan=2, sticky="w", pady=(12, 0))
@@ -539,9 +512,13 @@ class SoffitVisualizer:
     def _build_visual_area(self, parent: ttk.Frame) -> None:
         canvas_frame = ttk.Frame(parent, style="Panel.TFrame", padding=8)
         canvas_frame.pack(fill=tk.BOTH, expand=True)
-        self.canvas = tk.Canvas(canvas_frame, bg="#15151b", highlightthickness=0, height=360)
+        self.canvas = tk.Canvas(canvas_frame, bg="#15151b", highlightthickness=0, height=330)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.canvas.bind("<Configure>", lambda _event: self.draw_layout())
+
+        self.metrics_frame = ttk.Frame(parent, style="Panel.TFrame", padding=8)
+        self.metrics_frame.pack(fill=tk.X, pady=(12, 0))
+        self._build_metric_cards(self.metrics_frame)
 
         bottom = ttk.Frame(parent)
         bottom.pack(fill=tk.BOTH, expand=True, pady=(12, 0))
@@ -549,14 +526,29 @@ class SoffitVisualizer:
         summary_frame = ttk.Frame(bottom, style="Panel.TFrame", padding=8)
         summary_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 8))
         ttk.Label(summary_frame, text="Summary", style="Panel.TLabel", font=("Segoe UI", 11, "bold")).pack(anchor="w")
-        self.summary_text = tk.Text(summary_frame, height=16, wrap=tk.WORD, bg="#101016", fg="#f2f2f2", insertbackground="#ffffff", relief=tk.FLAT, font=("Consolas", 10))
+        self.summary_text = tk.Text(summary_frame, height=14, wrap=tk.WORD, bg="#101016", fg="#f2f2f2", insertbackground="#ffffff", relief=tk.FLAT, font=("Consolas", 10))
         self.summary_text.pack(fill=tk.BOTH, expand=True, pady=(6, 0))
 
         calc_frame = ttk.Frame(bottom, style="Panel.TFrame", padding=8)
         calc_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
         ttk.Label(calc_frame, text="Calculation Block", style="Panel.TLabel", font=("Segoe UI", 11, "bold")).pack(anchor="w")
-        self.calc_text = tk.Text(calc_frame, width=58, height=16, wrap=tk.WORD, bg="#101016", fg="#f2f2f2", insertbackground="#ffffff", relief=tk.FLAT, font=("Consolas", 10))
+        self.calc_text = tk.Text(calc_frame, width=58, height=14, wrap=tk.WORD, bg="#101016", fg="#f2f2f2", insertbackground="#ffffff", relief=tk.FLAT, font=("Consolas", 10))
         self.calc_text.pack(fill=tk.BOTH, expand=True, pady=(6, 0))
+
+    def _build_metric_cards(self, parent: ttk.Frame) -> None:
+        cards = [
+            ("Wood Required", self.metric_vars["required"], "no waste, based on 23/24 split"),
+            ("Pieces Used", self.metric_vars["used"], "estimated full pieces consumed"),
+            ("Pieces Left", self.metric_vars["left"], "estimated full pieces remaining"),
+            ("Unused / Offcut", self.metric_vars["unused"], "full-piece LF left + rounding"),
+        ]
+        for idx, (title, var, subtitle) in enumerate(cards):
+            card = ttk.Frame(parent, style="Card.TFrame", padding=10)
+            card.grid(row=0, column=idx, sticky="ew", padx=(0 if idx == 0 else 8, 0))
+            parent.columnconfigure(idx, weight=1)
+            ttk.Label(card, text=title, style="CardTitle.TLabel").pack(anchor="w")
+            ttk.Label(card, textvariable=var, style="CardValue.TLabel").pack(anchor="w", pady=(4, 2))
+            ttk.Label(card, text=subtitle, style="CardSubtle.TLabel").pack(anchor="w")
 
     def read_inputs(self):
         depth = parse_inches(self.depth_var.get(), "Sample soffit depth")
@@ -584,18 +576,9 @@ class SoffitVisualizer:
 
     def layout_for_depth(self, depth: float) -> Layout:
         _sample, wood, vent, vent_count, manual_wood, min_rip, tolerance, *_ = self.read_inputs()
-        return calculate_layout(
-            depth=depth,
-            wood_reveal=wood,
-            vent_reveal=vent,
-            vent_count=vent_count,
-            mode=self.mode_var.get(),
-            manual_wood_count=manual_wood,
-            vent_position=self.vent_position_var.get(),
-            rip_placement=self.rip_placement_var.get(),
-            min_rip=min_rip,
-            tolerance=tolerance,
-        )
+        return calculate_layout(depth, wood, vent, vent_count, self.mode_var.get(), manual_wood,
+                                self.vent_position_var.get(), self.rip_placement_var.get(),
+                                min_rip, tolerance)
 
     def update_calculations(self) -> None:
         try:
@@ -616,6 +599,7 @@ class SoffitVisualizer:
             self.last_math_check = math_check
             self.vent_position_var.set(sample_layout.vent_position)
             self.update_control_states()
+            self.update_metric_cards(allocation)
             self.draw_layout()
             self.write_summary(sample_layout, layout_23, layout_24, inventory, allocation, lf_23, lf_24, waste, math_check)
             self.write_calculation_block(sample_layout, layout_23, layout_24, inventory, allocation, lf_23, lf_24, waste, math_check)
@@ -626,6 +610,8 @@ class SoffitVisualizer:
             self.last_inventory = None
             self.last_allocation = None
             self.last_math_check = None
+            for var in self.metric_vars.values():
+                var.set("—")
             if hasattr(self, "canvas"):
                 self.canvas.delete("all")
                 self.canvas.create_text(20, 20, anchor="nw", fill="#ffb4b4", font=("Segoe UI", 11, "bold"), text=f"Input error: {exc}", width=max(300, self.canvas.winfo_width() - 40))
@@ -635,6 +621,12 @@ class SoffitVisualizer:
             if hasattr(self, "calc_text"):
                 self.calc_text.delete("1.0", tk.END)
                 self.calc_text.insert(tk.END, f"Input error: {exc}\n")
+
+    def update_metric_cards(self, allocation: PieceAllocation) -> None:
+        self.metric_vars["required"].set(f"{allocation.required_lf:.0f} LF")
+        self.metric_vars["used"].set(f"{allocation.used_piece_count} pcs")
+        self.metric_vars["left"].set(f"{allocation.left_piece_count} pcs")
+        self.metric_vars["unused"].set(f"{allocation.unused_piece_lf:.0f} LF + {allocation.overage_from_used_pieces_lf:.0f} LF")
 
     def update_control_states(self) -> None:
         auto = self.mode_var.get() == "Auto"
@@ -684,9 +676,9 @@ class SoffitVisualizer:
         if not layout:
             return
         w = max(650, self.canvas.winfo_width())
-        h = max(300, self.canvas.winfo_height())
-        y0 = 98
-        bar_h = min(135, max(85, h // 3))
+        h = max(280, self.canvas.winfo_height())
+        y0 = 92
+        bar_h = min(125, max(80, h // 3))
         y1 = y0 + bar_h
         wall_w = 58
         fascia_w = 70
@@ -784,18 +776,9 @@ class SoffitVisualizer:
             f"  {check.formula}",
         ]
 
-    def write_summary(
-        self,
-        sample: Layout,
-        layout_23: Layout,
-        layout_24: Layout,
-        inventory: Inventory,
-        allocation: PieceAllocation,
-        lf_23: float,
-        lf_24: float,
-        waste: float,
-        math_check: MathCheck,
-    ) -> None:
+    def write_summary(self, sample: Layout, layout_23: Layout, layout_24: Layout,
+                      inventory: Inventory, allocation: PieceAllocation,
+                      lf_23: float, lf_24: float, waste: float, math_check: MathCheck) -> None:
         total_lf = lf_23 + lf_24
         vent_lf = combined_required_vent_lf(layout_23, lf_23, layout_24, lf_24)
         lines: List[str] = []
@@ -824,10 +807,10 @@ class SoffitVisualizer:
         lines.append(f"Wood LF required/no waste: {allocation.required_lf:.1f} LF")
         lines.append(f"Vent LF required/no waste: {vent_lf:.1f} LF")
         lines.append("")
-        lines.append("NO-WASTE PIECE ALLOCATION, USING 12' THEN 11' THEN 6'")
+        lines.append("DYNAMIC PIECE ESTIMATE, NO WASTE")
         lines.append("-" * 72)
-        lines.append(f"Used:                      {allocation.used_12} @ 12', {allocation.used_11} @ 11', {allocation.used_6} @ 6'")
-        lines.append(f"Left over full pieces:     {allocation.left_12} @ 12', {allocation.left_11} @ 11', {allocation.left_6} @ 6'")
+        lines.append(f"Used pieces:               {allocation.used_piece_count} total ({allocation.used_12} @ 12', {allocation.used_11} @ 11', {allocation.used_6} @ 6')")
+        lines.append(f"Left over full pieces:     {allocation.left_piece_count} total ({allocation.left_12} @ 12', {allocation.left_11} @ 11', {allocation.left_6} @ 6')")
         lines.append(f"Gross LF consumed:         {allocation.gross_used_lf:.1f} LF")
         lines.append(f"Unused full-piece LF:      {allocation.unused_piece_lf:.1f} LF")
         lines.append(f"Offcut/rounding overage:   {allocation.overage_from_used_pieces_lf:.1f} LF")
@@ -844,8 +827,7 @@ class SoffitVisualizer:
         lines.append("")
         lines.append("NOTE")
         lines.append("-" * 72)
-        lines.append("- No-waste piece allocation is a starting estimate only. Actual cutting will need extra for joints, stagger, defects, mitres, mistakes, and usable offcuts.")
-        lines.append("- The floorplan image is useful for layout context, but exact LF should come from measured soffit runs rather than the screenshot scale.")
+        lines.append("- No-waste piece allocation is a starting estimate only. Actual cutting needs extra for joints, stagger, defects, mitres, mistakes, and usable offcuts.")
         self.summary_text.delete("1.0", tk.END)
         self.summary_text.insert(tk.END, "\n".join(lines))
 
@@ -861,7 +843,10 @@ class SoffitVisualizer:
             f"  Vent LF: {layout.vent_count * lf:.1f}",
         ]
 
-    def comparison_lines(self, wood: float, vent: float, vent_count: int, mode: str, manual_wood: int, vent_position: int, min_rip: float, tolerance: float, lf_23: float, lf_24: float, pcs_12: int, pcs_11: int, pcs_6: int) -> List[str]:
+    def comparison_lines(self, wood: float, vent: float, vent_count: int, mode: str,
+                         manual_wood: int, vent_position: int, min_rip: float,
+                         tolerance: float, lf_23: float, lf_24: float,
+                         pcs_12: int, pcs_11: int, pcs_6: int) -> List[str]:
         lines = []
         lines.append("RIP-PLACEMENT COMPARISON, NO WASTE")
         lines.append("-" * 58)
@@ -874,45 +859,34 @@ class SoffitVisualizer:
                 lines.append(rip)
                 lines.append(f"  23in courses: {wood_courses_per_run(l23)} | 24in courses: {wood_courses_per_run(l24)}")
                 lines.append(f"  Wood LF req:  {required:.1f}")
-                lines.append(f"  Use pieces:   {alloc.used_12}@12, {alloc.used_11}@11, {alloc.used_6}@6")
+                lines.append(f"  Used/left:    {alloc.used_piece_count} used / {alloc.left_piece_count} left")
                 lines.append(f"  Left pieces:  {alloc.left_12}@12, {alloc.left_11}@11, {alloc.left_6}@6")
             except Exception as exc:
                 lines.append(f"{rip}: ERROR {exc}")
             lines.append("")
         return lines
 
-    def write_calculation_block(
-        self,
-        sample: Layout,
-        layout_23: Layout,
-        layout_24: Layout,
-        inventory: Inventory,
-        allocation: PieceAllocation,
-        lf_23: float,
-        lf_24: float,
-        waste: float,
-        math_check: MathCheck,
-    ) -> None:
+    def write_calculation_block(self, sample: Layout, layout_23: Layout, layout_24: Layout,
+                                inventory: Inventory, allocation: PieceAllocation,
+                                lf_23: float, lf_24: float, waste: float,
+                                math_check: MathCheck) -> None:
         depth, wood, vent, vent_count, manual_wood, min_rip, tolerance, _lf23, _lf24, pcs_12, pcs_11, pcs_6, _waste = self.read_inputs()
         lines: List[str] = []
+        lines.append("DYNAMIC METRICS")
+        lines.append("-" * 58)
+        lines.append(f"Wood required/no waste: {allocation.required_lf:.1f} LF")
+        lines.append(f"Pieces used estimate:   {allocation.used_piece_count} pcs")
+        lines.append(f"Pieces left estimate:   {allocation.left_piece_count} pcs")
+        lines.append(f"Unused full-piece LF:   {allocation.unused_piece_lf:.1f} LF")
+        lines.append(f"Offcut/rounding LF:     {allocation.overage_from_used_pieces_lf:.1f} LF")
+        lines.append("")
         lines.append("MATH CHECK")
         lines.append("-" * 58)
         lines.extend(self.math_check_lines(math_check, "Current sample"))
         lines.append("")
-        lines.extend(self.math_check_lines(verify_layout_math(layout_23, tolerance), "23 in standard"))
+        lines.extend(self.math_check_lines(verify_layout_math(layout_23, tolerance), "23 in main house"))
         lines.append("")
         lines.extend(self.math_check_lines(verify_layout_math(layout_24, tolerance), "24 in entrance"))
-        lines.append("")
-        lines.append("NO-WASTE PIECE ESTIMATE")
-        lines.append("-" * 58)
-        lines.append(f"Required wood LF: {allocation.required_lf:.1f}")
-        lines.append(f"Inventory LF:     {inventory.total_lf:.1f}")
-        lines.append(f"Used pieces:      {allocation.used_12}@12', {allocation.used_11}@11', {allocation.used_6}@6'")
-        lines.append(f"Left pieces:      {allocation.left_12}@12', {allocation.left_11}@11', {allocation.left_6}@6'")
-        lines.append(f"Unused full LF:   {allocation.unused_piece_lf:.1f}")
-        lines.append(f"Offcut overage:   {allocation.overage_from_used_pieces_lf:.1f}")
-        if allocation.shortage_lf > 0:
-            lines.append(f"SHORTAGE LF:      {allocation.shortage_lf:.1f}")
         lines.append("")
         lines.append("23 / 24 DEPTH CARDS")
         lines.append("-" * 58)
